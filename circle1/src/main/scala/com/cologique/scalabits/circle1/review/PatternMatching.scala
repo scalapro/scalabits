@@ -31,23 +31,23 @@ object PatternMatching extends App {
   // Matching Cons.
   
   list match {
-    case x1 :: x2 :: x3 => println(x3)
+    case head :: neck :: rest => println(rest)
     case _ => println
   }
 
   list match {
-    case x1 :: x2 :: x3 :: Nil => println(x3)
+    case _ :: _ :: chest :: Nil => println(chest)
     case _ => println
   }
 
   list match {
-    case x1 :: x2 => println(x2)
+    case head :: tail => println(tail)
     case _ => println
   }
-
-  // Patterns in assignments.
   
-  val List(_, _, x3, _*) = list
+  // Patterns in assignments.
+  // Works if the companion object has an unapply.
+  val List(_, _, x3, _*) = list 
   println(x3)
   
   // Matching against constants. 

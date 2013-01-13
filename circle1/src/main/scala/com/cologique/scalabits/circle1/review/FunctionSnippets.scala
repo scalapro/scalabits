@@ -23,5 +23,4 @@ object FunctionSnippets extends App {
   val coplanar2 = pointList.filter(onSpecialsPlane)
   println(coplanar2)
   
-  val strange = 1 + null
 }

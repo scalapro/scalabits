@@ -3,13 +3,25 @@ package com.cologique.scalabits.circle1.review
 import scala.io.Source
 
 object CollectionSnippets extends App {
-  // Set.apply is defined in GenericCompanion according to Eclipse.
+
+  // There are default implementations for various collection traits.
+  //
+  // Consider Traversable (which defaults to scala.collection.immutable.Traversable).
+  // It gets its apply method from scala.collection.generic.GenericCompanion.
+  // That apply method is generic: it uses the specific trait's newBuilder method.
+  // Which in this case is defined in the companion object of Traversable as:
+  //
+  // def newBuilder[A]: Builder[A, Traversable[A]] = new mutable.ListBuffer
+  //
+  val tr: Traversable[Int] = Traversable(1, 2, 3)
+
+  // Set.apply is obtained generically from GenericCompanion.
   // TODO. Trace it in the API documentation.
   // Supposedly the default immutable Set is a hash set. 
   // TODO. Trace use of hash set in the implementation code for collections.
-  val set = Set(1, 2, 3)
+  val set: Set[Int] = Set(1, 2, 3)
 
-  // Map.apply is defined in GenericMapFactory according to Eclipse.
+  // Map.apply is defined in GenericMapFactory.
   val map = Map(1 -> "one", 2 -> "two")
   // Max on maps gets entry with highest key.
   println(map.max)
@@ -72,14 +84,14 @@ object CollectionSnippets extends App {
   println("end")
   source.close()
   // What if we skip step 2?
-  
+
   def from(n: Int): Stream[Int] = n #:: from(n + 1)
-  
+
   println(from(2).take(5))
   println(from(2).take(5).force)
-  
-  val powers = (0 until 10).view.map(1 + _)
-  println(powers)
-  println(powers.force)
+
+  val view = (0 until 10).view.map(1 + _)
+  println(view)
+  println(view.force)
 
 }

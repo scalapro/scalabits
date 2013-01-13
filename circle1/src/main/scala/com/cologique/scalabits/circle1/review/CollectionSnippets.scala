@@ -39,15 +39,15 @@ object CollectionSnippets extends App {
 
   val vector = Vector(1, 2, 3)
   val v1 = 1000 +: vector
-  println(v1)
+  println("v1: " + v1)
   // val v2 = 1000 :: vector // Wrong! :: not defined for vector.
 
   // Colon operators associate on the colon side.
   val l4 = 1000 +: 2000 +: list
-  println(l4)
+  println("l4: " + l4)
 
   val v4 = 1000 +: 2000 +: vector
-  println(v4)
+  println("V4: " + v4)
 
   val v5 = v4 :+ 10 // Efficient for vectors.
 

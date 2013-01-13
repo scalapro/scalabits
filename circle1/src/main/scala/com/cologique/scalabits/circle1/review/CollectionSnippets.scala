@@ -1,6 +1,7 @@
 package com.cologique.scalabits.circle1.review
 
 import scala.io.Source
+import scala.collection.immutable.HashSet
 
 object CollectionSnippets extends App {
 
@@ -19,7 +20,9 @@ object CollectionSnippets extends App {
   // TODO. Trace it in the API documentation.
   // Supposedly the default immutable Set is a hash set. 
   // TODO. Trace use of hash set in the implementation code for collections.
-  val set: Set[Int] = Set(1, 2, 3)
+  val set = Set(1, 2, 3)
+
+  val set3: Set[Int] = HashSet(1, 2, 3)
 
   // Map.apply is defined in GenericMapFactory.
   val map = Map(1 -> "one", 2 -> "two")
@@ -30,8 +33,9 @@ object CollectionSnippets extends App {
   val list = List(1, 2, 3)
 
   val biggerSet = set + (100, 200, 300)
-  val biggerMap = map + (5 -> "five", 10 -> "10")
+  val biggerMap = map + ((5, "five"), (10, "10"))
   // Cannot do the same with list.
+  // TODO. Where is + defined above and how does compiler understand it.
 
   val set2 = Set(2, 3, 4)
   val union = set | set2
@@ -48,6 +52,8 @@ object CollectionSnippets extends App {
 
   val l2 = 1000 +: list // Efficient.
   val l3 = 1000 :: list
+
+  val l6 = 1000 :: 2000 :: Nil
 
   val vector = Vector(1, 2, 3)
   val v1 = 1000 +: vector
@@ -70,9 +76,12 @@ object CollectionSnippets extends App {
   def mapFileLines[A](filename: String, f: String => A): (Source, Stream[A]) = {
     val source = Source.fromFile("lines.txt")
     val lines = source.getLines.toStream
+    // val lines = source.getLines.view // Wrong! No view for Iterator
     val output = lines map f
     (source, output)
   }
+  
+  // TODO. What is the Scala way of making sure Source is closed.
 
   // Puzzler. What will be printed when?
   println("step 1")
@@ -84,6 +93,14 @@ object CollectionSnippets extends App {
   println("end")
   source.close()
   // What if we skip step 2?
+
+  val lineLengths = mapFileLines("lines.txt", s => { println("inside function"); s.length; })._2
+  println(lineLengths)
+  val first2 = lineLengths.take(2).force
+  println(first2)
+  val first3 = lineLengths.take(3).force
+  println(first3)
+  // TODO. Assuming that computed values are cached for Stream. Confirm.
 
   def from(n: Int): Stream[Int] = n #:: from(n + 1)
 

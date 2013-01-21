@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#
+# the base environment for development in the current branch
+# 
+
+echo "..."
+
+export WORKSPACE="$HOME/dev/scalapro/scalabits/master"
+echo "WORKSPACE=$WORKSPACE"
+
+export JAVA_HOME="/usr/lib/jvm/jdk1.6.0_31"
+echo "JAVA_HOME=$JAVA_HOME"
+
+chrome_home="/usr/lib/chromium-browser"
+
+mylocal="$HOME/software"
+
+sbt_home="$mylocal/sbt-12.1"
+play_home="$mylocal/play-2.0.4"
+scala_home="$mylocal/scala-2.9.2"
+
+base_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+echo "base_path=$base_path"
+export PATH="$chrome_home:$sbt_home/bin:$JAVA_HOME/bin:$scala_home/bin:$play_home:$base_path:."
+echo "PATH=$PATH"
+
+export ECLIPSE_HOME=~/software/eclipse-indigo
+alias ide='$ECLIPSE_HOME/eclipse -data $WORKSPACE &'
+alias workspace="cd $WORKSPACE"
+
+# Put in .bashrc
+# alias be='. branch.sh' # branch environment 
+

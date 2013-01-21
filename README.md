@@ -7,6 +7,10 @@ Ask David or Azad to add you as collaborators.
 
 After cloning -
 
+cp branch.sh.template to branch.sh and cutomize it to reflect your environment.
+. branch.sh
+[Or equivalent on Windows.]
+
 For each project, e.g. circle1:
 
 cd circle1

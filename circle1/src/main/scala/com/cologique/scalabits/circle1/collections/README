@@ -1,0 +1,45 @@
+
+immutable.List[+A]  // Covariant.
+
+    def apply(n: Int): A                // A is result type and so in covariant position.
+    def contains(element: Any): Boolean // Note. Did not use generic element type.
+    def :+(element: A)                  // Append. How come? Contravariant position?? 
+
+    :+ Is defined way above in the hierarchy at scala.collection.SeqLike[+A, +Repr]
+
+        And here the documentation and the implementation look different.
+
+        In SeqLike.scala:
+
+        https://github.com/scala/scala/blob/v2.10.0/src/library/scala/collection/SeqLike.scala#L523
+
+            def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[Repr, B, That]): That
+
+            // Q: What is the motivaton behind That and CanBuildFrom.
+
+        In the API documentation:
+
+        http://www.scala-lang.org/api/current/index.html#scala.collection.SeqLike
+
+            def :+(elem: A): Seq[A]
+
+        // Q: Explain the apparent difference between the source and the documentation.
+
+immutable.Set[A]    // Invariant.
+
+    def apply(element: A): Boolean    // Consider set as a boolean function.
+    def contains(element: A): Boolean // Can use generic type since invariant.
+    def +(element: A): Set[Element]   // Ditto.
+
+
+    Q: Why did the designers of the Scala collections library decide to make
+    Set invariant, when List was designed to be covariant.
+    
+    A: According to Martin Odersky (http://www.scala-lang.org/node/9764):
+
+    On the issue of sets, I believe the non-variance stems also from the
+    implementations. Common sets are implemented as hashtables, which are
+    non-variant arrays of the key type. I agree it's a slighly annoying
+    irregularity.  -- Martin
+
+

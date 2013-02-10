@@ -9,16 +9,17 @@ object ListConversionBenchmark extends App {
 }
 
 class ListConversionBenchmark extends SimpleBenchmark {
-  @Param(Array("1000", "10000")) var size: Int = 10000; // set automatically by framework
-  //, "100000", "1000000"
+  @Param(Array("1000", "10000", "100000", "1000000")) var size: Int = 10000; // set automatically by framework
   var range: Range = null
   var immutableList: List[Int] = null
+  var immutableVector: Vector[Int] = null
   var javaList: java.util.ArrayList[Int] = null
   var mutableList: scala.collection.mutable.ListBuffer[Int] = null
 
   override protected def setUp() {
     range = 0 until size
     immutableList = List(range: _*)
+    immutableVector = Vector(range: _*)
     javaList = {
       val list = new java.util.ArrayList[Int]()
       range.foreach { i =>
@@ -33,7 +34,7 @@ class ListConversionBenchmark extends SimpleBenchmark {
     }
   }
 
-  def timeJavaListConversion(reps: Int) {
+  def timeJavaArrayListConversion(reps: Int) {
     for (i <- 1 to reps) {
       val list = new java.util.ArrayList[Int]()
       for (i <- 0 until javaList.size()) {
@@ -42,13 +43,19 @@ class ListConversionBenchmark extends SimpleBenchmark {
     }
   }
 
-  def timeImmutableListConversionUsingMap(reps: Int) {
+  def timeListConversionUsingMap(reps: Int) {
     for (i <- 1 to reps) {
       val list = immutableList.map(_ * 2)
     }
   }
 
-  def timeMutableListConversionUsingMap(reps: Int) {
+  def timeVectorConversionUsingMap(reps: Int) {
+    for (i <- 1 to reps) {
+      val list = immutableVector.map(_ * 2)
+    }
+  }
+
+  def timeListBufferConversionUsingMap(reps: Int) {
     for (i <- 1 to reps) {
       val list = mutableList.map(_ * 2)
     }

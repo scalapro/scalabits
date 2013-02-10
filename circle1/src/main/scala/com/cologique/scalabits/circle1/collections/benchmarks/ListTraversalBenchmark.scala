@@ -9,16 +9,17 @@ object ListTraversalBenchmark extends App {
 }
 
 class ListTraversalBenchmark extends SimpleBenchmark {
-  @Param(Array("1000", "10000")) var size: Int = 10000; // set automatically by framework
-  // , "100000", "1000000"
+  @Param(Array("1000", "10000", "100000", "1000000")) var size: Int = 10000; // set automatically by framework
   var range: Range = null
   var immutableList: List[Int] = null
+  var immutableVector: Vector[Int] = null
   var javaList: java.util.ArrayList[Int] = null
   var mutableList: scala.collection.mutable.ListBuffer[Int] = null
 
   override protected def setUp() {
     range = 0 until size
     immutableList = List(range: _*)
+    immutableVector = Vector(range: _*)
     javaList = {
       val list = new java.util.ArrayList[Int]()
       range.foreach { i =>
@@ -33,7 +34,7 @@ class ListTraversalBenchmark extends SimpleBenchmark {
     }
   }
 
-  def timeJavaListTraversal(reps: Int) {
+  def timeJavaArrayListTraversal(reps: Int) {
     for (i <- 1 to reps) {
       var y: Int = 0
       for (i <- 0 until javaList.size()) {
@@ -42,7 +43,7 @@ class ListTraversalBenchmark extends SimpleBenchmark {
     }
   }
 
-  def timeImmutableListTraversalUsingForeach(reps: Int) {
+  def timeListTraversalUsingForeach(reps: Int) {
     for (i <- 1 to reps) {
       var y: Int = 0
       immutableList.foreach { x =>
@@ -51,7 +52,22 @@ class ListTraversalBenchmark extends SimpleBenchmark {
     }
   }
 
-  def timeMutableListTraversalUsingForeach(reps: Int) {
+  def timeVectorTraversalUsingForeach(reps: Int) {
+    for (i <- 1 to reps) {
+      var y: Int = 0
+      immutableVector.foreach { x =>
+        y += x
+      }
+    }
+  }
+
+  def timeVectorTraversalUsingFoldLeft(reps: Int) {
+    for (i <- 1 to reps) {
+      immutableVector.foldLeft(0)((x, y) => x + y)
+    }
+  }
+
+  def timeListBufferTraversalUsingForeach(reps: Int) {
     for (i <- 1 to reps) {
       var y: Int = 0
       mutableList.foreach { x =>
@@ -60,13 +76,13 @@ class ListTraversalBenchmark extends SimpleBenchmark {
     }
   }
 
-  def timeImmutableListTraversalUsingFoldLeft(reps: Int) {
+  def timeListTraversalUsingFoldLeft(reps: Int) {
     for (i <- 1 to reps) {
       immutableList.foldLeft(0)((x, y) => x + y)
     }
   }
 
-  def timeMutableListTraversalUsingFoldLeft(reps: Int) {
+  def timeListBufferTraversalUsingFoldLeft(reps: Int) {
     for (i <- 1 to reps) {
       mutableList.foldLeft(0)((x, y) => x + y)
     }

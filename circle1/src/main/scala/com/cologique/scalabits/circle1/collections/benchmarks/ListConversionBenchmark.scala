@@ -4,12 +4,26 @@ import com.google.caliper.Runner
 import com.google.caliper.SimpleBenchmark
 import com.google.caliper.Param
 
+/**
+ * [info]   1000      JavaArrayListConversion   28.4 =
+ * [info]   1000       ListConversionUsingMap   22.1 =
+ * [info]   1000     VectorConversionUsingMap   12.7 =
+ * [info]   1000 ListBufferConversionUsingMap   22.5 =
+ * [info]  10000      JavaArrayListConversion  277.2 =
+ * [info]  10000       ListConversionUsingMap  244.5 =
+ * [info]  10000     VectorConversionUsingMap  133.6 =
+ * [info]  10000 ListBufferConversionUsingMap  245.8 =
+ * [info] 100000      JavaArrayListConversion 4130.9 =================
+ * [info] 100000       ListConversionUsingMap 7092.5 =============================
+ * [info] 100000     VectorConversionUsingMap 2215.0 =========
+ * [info] 100000 ListBufferConversionUsingMap 7121.2 ==============================
+ */
 object ListConversionBenchmark extends App {
   Runner.main(classOf[ListConversionBenchmark], args);
 }
 
 class ListConversionBenchmark extends SimpleBenchmark {
-  @Param(Array("1000", "10000", "100000", "1000000")) var size: Int = 10000; // set automatically by framework
+  @Param(Array("1000", "10000", "100000")) var size: Int = 10000; // set automatically by framework
   var range: Range = null
   var immutableList: List[Int] = null
   var immutableVector: Vector[Int] = null

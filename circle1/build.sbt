@@ -20,3 +20,5 @@ libraryDependencies += "com.google.code.gson" % "gson" % "2.2.2"
 fork in run := true            
 
 javaOptions in run <++= (fullClasspath in Runtime) map {cp => Seq("-cp", sbt.Build.data(cp).mkString(if (util.Properties.isWin) ";" else ":"))}
+
+javaOptions in run += "-Xmx1G" 

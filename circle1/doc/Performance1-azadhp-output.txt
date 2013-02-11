@@ -1,0 +1,141 @@
+
+Results of a Single rune of timing tests for collections:
+
+    com.cologique.scalabits.circle1.collections.Performance1.scala
+
+Notes
+_____
+
+Assuming that the average time for an operation is = c * complexity(size) for
+some constant "c", the last column in the results below display the observerd
+value of the constant "c". The applicable complexity measure is indicated in 
+the penultimate column.
+
+For a given operation on a given type of collection, then, this column should
+have approximately the same value independent of size. Without going into what
+constitutes statistical variation in a given run, it is fairly clear what the
+outliers are. Outliers are marked with a '*'.
+
+There are several sets of results in which the first run (collection size 1000)
+is an outlier. We can probably explain that away as a JVM warmpup issue.
+
+There are, on the other hand, several results that cannot be explained away as
+JVM warmup or simple statistical variation. These puzzlers are:
+
+- ArrayBuffer prepend is theoretically linear but is observed as constant in the 
+  ranges of sizes for these runs.
+
+- List update and append are theoretically linear but are observed as constant
+  for the ranges of sizes for these runs.
+
+Do you get similar results in your environment? 
+
+
+Array
+-----
+get          (size:   1000, iters:  10000)   8461 total nanos - per-operation-time/constant:     0.84610*
+get          (size:   2000, iters:  10000)   1052 total nanos - per-operation-time/constant:     0.10520
+get          (size:   4000, iters:  10000)   1291 total nanos - per-operation-time/constant:     0.12910
+get          (size:   8000, iters:  10000)   1083 total nanos - per-operation-time/constant:     0.10830
+get          (size:  16000, iters:  10000)   1338 total nanos - per-operation-time/constant:     0.13380
+get          (size:  32000, iters:  10000)   1215 total nanos - per-operation-time/constant:     0.12150
+
+-
+update       (size:   1000, iters:  10000)    868 total nanos - per-operation-time/constant:     0.08680*
+update       (size:   2000, iters:  10000)    565 total nanos - per-operation-time/constant:     0.05650
+update       (size:   4000, iters:  10000)   1614 total nanos - per-operation-time/constant:     0.16140*
+update       (size:   8000, iters:  10000)    609 total nanos - per-operation-time/constant:     0.06090
+update       (size:  16000, iters:  10000)    473 total nanos - per-operation-time/constant:     0.04730
+update       (size:  32000, iters:  10000)    502 total nanos - per-operation-time/constant:     0.05020
+
+ArrayBuffer
+-----------
+get          (size:   1000, iters:  10000)    906 total nanos - per-operation-time/constant:     0.09060
+get          (size:   2000, iters:  10000)    762 total nanos - per-operation-time/constant:     0.07620
+get          (size:   4000, iters:  10000)    806 total nanos - per-operation-time/constant:     0.08060
+get          (size:   8000, iters:  10000)    955 total nanos - per-operation-time/constant:     0.09550
+get          (size:  16000, iters:  10000)    870 total nanos - per-operation-time/constant:     0.08700
+get          (size:  32000, iters:  10000)    787 total nanos - per-operation-time/constant:     0.07870
+-
+update       (size:   1000, iters:  10000)    776 total nanos - per-operation-time/constant:     0.07760
+update       (size:   2000, iters:  10000)    562 total nanos - per-operation-time/constant:     0.05620
+update       (size:   4000, iters:  10000)    604 total nanos - per-operation-time/constant:     0.06040
+update       (size:   8000, iters:  10000)    617 total nanos - per-operation-time/constant:     0.06170
+update       (size:  16000, iters:  10000)    568 total nanos - per-operation-time/constant:     0.05680
+update       (size:  32000, iters:  10000)    576 total nanos - per-operation-time/constant:     0.05760
+-
+append       (size:   1000, iters:  10000)    642 total nanos - per-operation-time/constant:     0.06420
+append       (size:   2000, iters:  10000)    660 total nanos - per-operation-time/constant:     0.06600
+append       (size:   4000, iters:  10000)    606 total nanos - per-operation-time/constant:     0.06060
+append       (size:   8000, iters:  10000)    600 total nanos - per-operation-time/constant:     0.06000
+append       (size:  16000, iters:  10000)    708 total nanos - per-operation-time/constant:     0.07080
+append       (size:  32000, iters:  10000)    609 total nanos - per-operation-time/constant:     0.06090
+-
+prepend      (size:   1000, iters:  10000)    675 total nanos - per-operation-time/linear:       0.00007*
+prepend      (size:   2000, iters:  10000)    655 total nanos - per-operation-time/linear:       0.00003*
+prepend      (size:   4000, iters:  10000)    635 total nanos - per-operation-time/linear:       0.00002*
+prepend      (size:   8000, iters:  10000)    591 total nanos - per-operation-time/linear:       0.00001*
+prepend      (size:  16000, iters:  10000)    611 total nanos - per-operation-time/linear:       0.00000*
+prepend      (size:  32000, iters:  10000)    644 total nanos - per-operation-time/linear:       0.00000*
+
+Vector
+------
+get          (size:   1000, iters:  10000)   2409 total nanos - per-operation-time/logN:         0.03487*
+get          (size:   2000, iters:  10000)    709 total nanos - per-operation-time/logN:         0.00933
+get          (size:   4000, iters:  10000)    781 total nanos - per-operation-time/logN:         0.00942
+get          (size:   8000, iters:  10000)    897 total nanos - per-operation-time/logN:         0.00998
+get          (size:  16000, iters:  10000)    909 total nanos - per-operation-time/logN:         0.00939
+get          (size:  32000, iters:  10000)    832 total nanos - per-operation-time/logN:         0.00802
+-
+update       (size:   1000, iters:  10000)    762 total nanos - per-operation-time/logN:         0.01103
+update       (size:   2000, iters:  10000)    804 total nanos - per-operation-time/logN:         0.01058
+update       (size:   4000, iters:  10000)    723 total nanos - per-operation-time/logN:         0.00872
+update       (size:   8000, iters:  10000)    947 total nanos - per-operation-time/logN:         0.01054
+update       (size:  16000, iters:  10000)   1203 total nanos - per-operation-time/logN:         0.01243
+update       (size:  32000, iters:  10000)    632 total nanos - per-operation-time/logN:         0.00609*
+-
+append       (size:   1000, iters:  10000)    836 total nanos - per-operation-time/logN:         0.01210*
+append       (size:   2000, iters:  10000)    691 total nanos - per-operation-time/logN:         0.00909
+append       (size:   4000, iters:  10000)    709 total nanos - per-operation-time/logN:         0.00855
+append       (size:   8000, iters:  10000)    623 total nanos - per-operation-time/logN:         0.00693
+append       (size:  16000, iters:  10000)    596 total nanos - per-operation-time/logN:         0.00616
+append       (size:  32000, iters:  10000)    657 total nanos - per-operation-time/logN:         0.00633
+-
+prepend      (size:   1000, iters:  10000)   1865 total nanos - per-operation-time/logN:         0.02700*
+prepend      (size:   2000, iters:  10000)    772 total nanos - per-operation-time/logN:         0.01016*
+prepend      (size:   4000, iters:  10000)    622 total nanos - per-operation-time/logN:         0.00750
+prepend      (size:   8000, iters:  10000)    580 total nanos - per-operation-time/logN:         0.00645
+prepend      (size:  16000, iters:  10000)    572 total nanos - per-operation-time/logN:         0.00591
+prepend      (size:  32000, iters:  10000)    657 total nanos - per-operation-time/logN:         0.00633
+
+List
+----
+get          (size:   1000, iters:  10000)   2496 total nanos - per-operation-time/linear:       0.00025*
+get          (size:   2000, iters:  10000)    789 total nanos - per-operation-time/linear:       0.00004*
+get          (size:   4000, iters:  10000)    816 total nanos - per-operation-time/linear:       0.00002*
+get          (size:   8000, iters:  10000)    816 total nanos - per-operation-time/linear:       0.00001
+get          (size:  16000, iters:  10000)   1522 total nanos - per-operation-time/linear:       0.00001
+get          (size:  32000, iters:  10000)   3335 total nanos - per-operation-time/linear:       0.00001
+-
+update       (size:   1000, iters:  10000)    892 total nanos - per-operation-time/linear:       0.00009*
+update       (size:   2000, iters:  10000)    928 total nanos - per-operation-time/linear:       0.00005*
+update       (size:   4000, iters:  10000)   1192 total nanos - per-operation-time/linear:       0.00003*
+update       (size:   8000, iters:  10000)   1076 total nanos - per-operation-time/linear:       0.00001*
+update       (size:  16000, iters:  10000)   1021 total nanos - per-operation-time/linear:       0.00001*
+update       (size:  32000, iters:  10000)    971 total nanos - per-operation-time/linear:       0.00000*
+-
+append       (size:   1000, iters:  10000)   1141 total nanos - per-operation-time/linear:       0.00011*
+append       (size:   2000, iters:  10000)   1247 total nanos - per-operation-time/linear:       0.00006*
+append       (size:   4000, iters:  10000)   1086 total nanos - per-operation-time/linear:       0.00003*
+append       (size:   8000, iters:  10000)    994 total nanos - per-operation-time/linear:       0.00001*
+append       (size:  16000, iters:  10000)   1156 total nanos - per-operation-time/linear:       0.00001*
+append       (size:  32000, iters:  10000)   1242 total nanos - per-operation-time/linear:       0.00000*
+-
+prepend      (size:   1000, iters:  10000)   1794 total nanos - per-operation-time/constant:     0.17940*
+prepend      (size:   2000, iters:  10000)    721 total nanos - per-operation-time/constant:     0.07210
+prepend      (size:   4000, iters:  10000)    608 total nanos - per-operation-time/constant:     0.06080
+prepend      (size:   8000, iters:  10000)    595 total nanos - per-operation-time/constant:     0.05950
+prepend      (size:  16000, iters:  10000)    602 total nanos - per-operation-time/constant:     0.06020
+prepend      (size:  32000, iters:  10000)    685 total nanos - per-operation-time/constant:     0.06850
+
+

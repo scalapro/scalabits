@@ -61,6 +61,7 @@ object Puzzler_2013_02_01 {
     
     val invariantClient1 = InvariantClient1(covariantCell)
     println(invariantClient1.cell.content)
+    
   }
   
 }

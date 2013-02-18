@@ -9,8 +9,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 
 resolvers += "Sonatype OSS Repo" at "http://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test"
-
 libraryDependencies += "com.google.caliper" % "caliper" % "0.5-rc1"
 
 libraryDependencies += "com.google.guava" % "guava" % "13.0.1"

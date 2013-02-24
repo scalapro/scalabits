@@ -1,12 +1,17 @@
 package com.cologique.scalabits.circle1.scalaTest
 
+
+/*
+ * Code from ScalaTest docs
+ */
+
 import java.util.concurrent.ConcurrentHashMap
 
 object DbServer { // Simulating a database server
   type Db = StringBuffer
   private val databases = new ConcurrentHashMap[String, Db]
   def createDb(name: String): Db = {
-    val db = new StringBuffer
+    val db = new Db
     databases.put(name, db)
     db
   }
@@ -22,7 +27,7 @@ import java.io._
 
 class DbTest extends FlatSpec {
 
-  def withDatabase(testCode: Db => Any) {
+  def withDatabase(testCode: Db => Unit) {
     val dbName = randomUUID.toString
     val db = createDb(dbName) // create the fixture
     try {
@@ -32,7 +37,7 @@ class DbTest extends FlatSpec {
     finally removeDb(dbName) // clean up the fixture
   }
 
-  def withFile(testCode: (File, FileWriter) => Any) {
+  def withFile(testCode: (File, FileWriter) => Unit) {
     val file = File.createTempFile("hello", "world") // create the fixture
     val writer = new FileWriter(file)
     try {

@@ -6,7 +6,7 @@ import org.scalatest._
 
 class ExploreFunSpec extends FunSpec {
   
-  def fixture =
+  def fixture() =
     new {
       val builder = new StringBuilder("ScalaTest is ")
       val buffer = new ListBuffer[String]
@@ -14,7 +14,7 @@ class ExploreFunSpec extends FunSpec {
   
   describe("A Set") {
     describe("when empty") {
-      it("should have size 0") (pending)
+      it("should have size 0") {pending}
  //     {
 //        assert(Set.empty.size === 0)
 //      }

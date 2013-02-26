@@ -17,7 +17,8 @@ class CollectionsSuite extends FunSuite {
   test("zip List[Int] and List[Char]") {
     val keys = List(1,2)
     val vals = List('a','b')
-    val map = keys.zip(vals).toMap[Int, Char]
+    val zipped = keys.zip(vals)
+    val map = zipped.toMap[Int, Char]
     assert( map.getClass.toString === "class scala.collection.immutable.Map$Map2")
     assert(map === Map(1 -> 'a', 2 -> 'b'))
   }

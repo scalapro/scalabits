@@ -1,5 +1,16 @@
 package com.cologique.scalabits.circle1.scalaTest
 
+
+/**
+ *  This is the Application that drives the Life game.
+ *
+ *  lifeTicker() recursively generates a new immutable Board class for every "tick" of a generation.
+ *
+ *  Upon completion, the lifeTicker() returns a IndexSeq of generations of board based on the rules of the Game of Life
+ *
+ *  @author Tony Hsieh
+ *
+ */
 object Life extends App {
   val level =
     """-o----
@@ -19,6 +30,5 @@ object Life extends App {
   }
 
   val lifeGenerations = lifeTicker(IndexedSeq(new Board(Board.gridizer(level))), iterations)
-
   lifeGenerations map {x => println(x.toString()) }
 }

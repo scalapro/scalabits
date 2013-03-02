@@ -1,4 +1,4 @@
-package com.cologique.scalabits.circle1.scalaTest
+package com.cologique.scalabits.circle1.scalatest
 
 /**
  * This forms the immutable class which contains one generation of a Game of Life board

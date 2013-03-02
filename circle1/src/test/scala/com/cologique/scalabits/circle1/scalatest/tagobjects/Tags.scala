@@ -1,4 +1,4 @@
-package com.cologique.scalabits.circle1.scalaTest.tagobjects
+package com.cologique.scalabits.circle1.scalatest.tagobjects
 
 /* Used for tagging FunSpec it() functions */
 import org.scalatest.Tag

@@ -4,6 +4,7 @@ package com.cologique.scalabits.circle1.review;
 class ArraySnippets {
 	public static void main(String[] args) {
 		String[] a1 = { "something" };
+		@SuppressWarnings("unused")
 		Object[] a2 = a1;
 		// a2[0] = new Double(100.0); // Runtime ArrayStoreException.
 		String string = a1[0];

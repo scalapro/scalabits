@@ -1,4 +1,4 @@
-package com.cologique.scalabits.circle1.scalaTest
+package com.cologique.scalabits.circle1.scalatest
 
 
 /**

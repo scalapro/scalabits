@@ -1,9 +1,10 @@
-package com.cologique.scalabits.circle1.scalaTest
+package com.cologique.scalabits.circle1.scalatest
 
 import org.scalatest.{BeforeAndAfter, FunSpec, GivenWhenThen}
 import org.scalatest.matchers.ShouldMatchers
-import com.cologique.scalabits.circle1.scalaTest.tags.LifeTest
-import com.cologique.scalabits.circle1.scalaTest.tagobjects.{PositionTest, LifeTest}
+import com.cologique.scalabits.circle1.scalatest.tags.LifeTest
+import com.cologique.scalabits.circle1.scalatest.tagobjects.{PositionTest, LifeTest}
+import com.cologique.scalabits.circle1.scalatest._
 
 /*
  This utilizes the FunSpec style from ScalaTest
@@ -12,7 +13,7 @@ import com.cologique.scalabits.circle1.scalaTest.tagobjects.{PositionTest, LifeT
   0) start sbt in the root of the project
   1) test: console
   2) import org.scalatest._
-  3) import  com.cologique.scalabits.circle1.scalaTest._
+  3) import  com.cologique.scalabits.circle1.scalatest._
   4) run (new ScalaLifeTest)
 
 

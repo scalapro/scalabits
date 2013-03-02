@@ -15,6 +15,10 @@ libraryDependencies += "com.google.guava" % "guava" % "13.0.1"
 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.2.2"
 
+resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+ 
+libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0"
+
 fork in run := true            
 
 javaOptions in run <++= (fullClasspath in Runtime) map {cp => Seq("-cp", sbt.Build.data(cp).mkString(if (util.Properties.isWin) ";" else ":"))}

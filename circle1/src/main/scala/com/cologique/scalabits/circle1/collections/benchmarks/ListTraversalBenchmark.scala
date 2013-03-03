@@ -3,60 +3,66 @@ package com.cologique.scalabits.circle1.collections.benchmarks
 import com.google.caliper.Runner
 import com.google.caliper.SimpleBenchmark
 import com.google.caliper.Param
+import collection.JavaConversions._
 
 /**
- * [info]   size                          benchmark      us linear runtime
- * [info]   1000             JavaArrayListTraversal    2.52 =
- * [info]   1000          ListTraversalUsingForeach    4.24 =
- * [info]   1000         ListTraversalUsingFoldLeft    9.03 =
- * [info]   1000        VectorTraversalUsingForeach    4.07 =
- * [info]   1000       VectorTraversalUsingFoldLeft   10.11 =
- * [info]   1000      VectorTraversalUsingFoldRight   36.32 =
- * [info]   1000    ListBufferTraversalUsingForeach    4.26 =
- * [info]   1000   ListBufferTraversalUsingFoldLeft   10.26 =
- * [info]   1000   ArrayBufferTraversalUsingForeach    1.29 =
- * [info]   1000  ArrayBufferTraversalUsingFoldLeft   15.23 =
- * [info]   1000 ArrayBufferTraversalUsingFoldRight   14.17 =
- * [info]   1000      ArraySeqTraversalUsingForeach    1.64 =
- * [info]   1000     ArraySeqTraversalUsingFoldLeft   14.58 =
- * [info]   1000    ArraySeqTraversalUsingFoldRight   14.15 =
- * [info]   1000         ArrayTraversalUsingForeach    9.81 =
- * [info]   1000        ArrayTraversalUsingFoldLeft   25.59 =
- * [info]   1000       ArrayTraversalUsingFoldRight   24.68 =
- * [info]  10000             JavaArrayListTraversal   28.58 =
- * [info]  10000          ListTraversalUsingForeach   43.77 =
- * [info]  10000         ListTraversalUsingFoldLeft   87.37 =
- * [info]  10000        VectorTraversalUsingForeach   43.39 =
- * [info]  10000       VectorTraversalUsingFoldLeft  105.29 =
- * [info]  10000      VectorTraversalUsingFoldRight  395.01 ==
- * [info]  10000    ListBufferTraversalUsingForeach   44.25 =
- * [info]  10000   ListBufferTraversalUsingFoldLeft  116.97 =
- * [info]  10000   ArrayBufferTraversalUsingForeach   18.01 =
- * [info]  10000  ArrayBufferTraversalUsingFoldLeft  150.12 =
- * [info]  10000 ArrayBufferTraversalUsingFoldRight  145.82 =
- * [info]  10000      ArraySeqTraversalUsingForeach   21.44 =
- * [info]  10000     ArraySeqTraversalUsingFoldLeft  158.67 =
- * [info]  10000    ArraySeqTraversalUsingFoldRight  148.44 =
- * [info]  10000         ArrayTraversalUsingForeach  109.02 =
- * [info]  10000        ArrayTraversalUsingFoldLeft  268.52 =
- * [info]  10000       ArrayTraversalUsingFoldRight  276.81 =
- * [info] 100000             JavaArrayListTraversal  291.85 =
- * [info] 100000          ListTraversalUsingForeach  544.27 ===
- * [info] 100000         ListTraversalUsingFoldLeft 1562.61 ========
- * [info] 100000        VectorTraversalUsingForeach  459.80 ==
- * [info] 100000       VectorTraversalUsingFoldLeft 1515.95 ========
- * [info] 100000      VectorTraversalUsingFoldRight 5427.04 ==============================
- * [info] 100000    ListBufferTraversalUsingForeach  589.23 ===
- * [info] 100000   ListBufferTraversalUsingFoldLeft 1711.29 =========
- * [info] 100000   ArrayBufferTraversalUsingForeach  181.04 =
- * [info] 100000  ArrayBufferTraversalUsingFoldLeft 1111.56 ======
- * [info] 100000 ArrayBufferTraversalUsingFoldRight 1406.32 =======
- * [info] 100000      ArraySeqTraversalUsingForeach  219.62 =
- * [info] 100000     ArraySeqTraversalUsingFoldLeft 1162.13 ======
- * [info] 100000    ArraySeqTraversalUsingFoldRight 1231.09 ======
- * [info] 100000         ArrayTraversalUsingForeach  967.27 =====
- * [info] 100000        ArrayTraversalUsingFoldLeft 1722.35 =========
- * [info] 100000       ArrayTraversalUsingFoldRight 1844.58 ==========
+[info]   1000                            JavaArrayListTraversal    2.54 =
+[info]   1000  JavaArrayListAsScalaBufferConversionUsingForeach    8.03 =
+[info]   1000 JavaArrayListAsScalaBufferConversionUsingFoldLeft   12.97 =
+[info]   1000                         ListTraversalUsingForeach    4.29 =
+[info]   1000                        ListTraversalUsingFoldLeft    8.64 =
+[info]   1000                       VectorTraversalUsingForeach    3.99 =
+[info]   1000                      VectorTraversalUsingFoldLeft    9.80 =
+[info]   1000                     VectorTraversalUsingFoldRight   36.25 =
+[info]   1000                   ListBufferTraversalUsingForeach    4.26 =
+[info]   1000                  ListBufferTraversalUsingFoldLeft   10.26 =
+[info]   1000                  ArrayBufferTraversalUsingForeach    1.29 =
+[info]   1000                 ArrayBufferTraversalUsingFoldLeft   14.65 =
+[info]   1000                ArrayBufferTraversalUsingFoldRight   14.24 =
+[info]   1000                     ArraySeqTraversalUsingForeach    1.65 =
+[info]   1000                    ArraySeqTraversalUsingFoldLeft   14.69 =
+[info]   1000                   ArraySeqTraversalUsingFoldRight   15.66 =
+[info]   1000                        ArrayTraversalUsingForeach   10.32 =
+[info]   1000                       ArrayTraversalUsingFoldLeft   27.07 =
+[info]   1000                      ArrayTraversalUsingFoldRight   25.29 =
+[info]  10000                            JavaArrayListTraversal   28.86 =
+[info]  10000  JavaArrayListAsScalaBufferConversionUsingForeach   97.12 =
+[info]  10000 JavaArrayListAsScalaBufferConversionUsingFoldLeft  159.05 =
+[info]  10000                         ListTraversalUsingForeach   50.20 =
+[info]  10000                        ListTraversalUsingFoldLeft  117.15 =
+[info]  10000                       VectorTraversalUsingForeach   49.64 =
+[info]  10000                      VectorTraversalUsingFoldLeft  125.91 =
+[info]  10000                     VectorTraversalUsingFoldRight  470.66 ==
+[info]  10000                   ListBufferTraversalUsingForeach   54.53 =
+[info]  10000                  ListBufferTraversalUsingFoldLeft  134.14 =
+[info]  10000                  ArrayBufferTraversalUsingForeach   19.37 =
+[info]  10000                 ArrayBufferTraversalUsingFoldLeft  168.37 =
+[info]  10000                ArrayBufferTraversalUsingFoldRight  166.91 =
+[info]  10000                     ArraySeqTraversalUsingForeach   22.63 =
+[info]  10000                    ArraySeqTraversalUsingFoldLeft  172.50 =
+[info]  10000                   ArraySeqTraversalUsingFoldRight  176.44 =
+[info]  10000                        ArrayTraversalUsingForeach  126.12 =
+[info]  10000                       ArrayTraversalUsingFoldLeft  311.50 =
+[info]  10000                      ArrayTraversalUsingFoldRight  338.31 =
+[info] 100000                            JavaArrayListTraversal  376.68 =
+[info] 100000  JavaArrayListAsScalaBufferConversionUsingForeach  949.41 ====
+[info] 100000 JavaArrayListAsScalaBufferConversionUsingFoldLeft 1540.31 =======
+[info] 100000                         ListTraversalUsingForeach  624.68 ===
+[info] 100000                        ListTraversalUsingFoldLeft 1939.15 =========
+[info] 100000                       VectorTraversalUsingForeach  460.68 ==
+[info] 100000                      VectorTraversalUsingFoldLeft 1458.22 =======
+[info] 100000                     VectorTraversalUsingFoldRight 5913.89 ==============================
+[info] 100000                   ListBufferTraversalUsingForeach  797.77 ====
+[info] 100000                  ListBufferTraversalUsingFoldLeft 3452.80 =================
+[info] 100000                  ArrayBufferTraversalUsingForeach  252.98 =
+[info] 100000                 ArrayBufferTraversalUsingFoldLeft 1616.59 ========
+[info] 100000                ArrayBufferTraversalUsingFoldRight 2508.90 ============
+[info] 100000                     ArraySeqTraversalUsingForeach  396.59 ==
+[info] 100000                    ArraySeqTraversalUsingFoldLeft 1819.33 =========
+[info] 100000                   ArraySeqTraversalUsingFoldRight 1645.15 ========
+[info] 100000                        ArrayTraversalUsingForeach 1360.20 ======
+[info] 100000                       ArrayTraversalUsingFoldLeft 2635.88 =============
+[info] 100000                      ArrayTraversalUsingFoldRight 3225.95 ================
  *
  */
 
@@ -65,7 +71,7 @@ object ListTraversalBenchmark extends App {
 }
 
 class ListTraversalBenchmark extends SimpleBenchmark {
-  @Param(Array("1000", "10000", "100000", "100000")) var size: Int = 10000; // set automatically by framework
+  @Param(Array("1000", "10000", "100000", "1000000")) var size: Int = 10000; // set automatically by framework
   var range: Range = null
   var list: List[Int] = null
   var vector: Vector[Int] = null
@@ -98,6 +104,23 @@ class ListTraversalBenchmark extends SimpleBenchmark {
       for (i <- 0 until javaList.size()) {
         y += javaList.get(i)
       }
+    }
+  }
+
+  def timeJavaArrayListAsScalaBufferConversionUsingForeach(reps: Int) {
+    for (i <- 1 to reps) {
+      val scalaBuffer = asScalaBuffer(javaList)
+      var y: Int = 0
+      scalaBuffer.foreach { x =>
+        y += x
+      }
+    }
+  }
+
+  def timeJavaArrayListAsScalaBufferConversionUsingFoldLeft(reps: Int) {
+    for (i <- 1 to reps) {
+      val scalaBuffer = asScalaBuffer(javaList)
+      scalaBuffer.foldLeft(0)((x, y) => x + y)
     }
   }
 

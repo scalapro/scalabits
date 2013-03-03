@@ -3,37 +3,42 @@ package com.cologique.scalabits.circle1.collections.benchmarks
 import com.google.caliper.Runner
 import com.google.caliper.SimpleBenchmark
 import com.google.caliper.Param
+import collection.JavaConversions._
 
 /**
- * [info]    size                     benchmark       us linear runtime
- * [info]    1000       JavaArrayListConversion     29.3 =
- * [info]    1000        ListConversionUsingMap     22.7 =
- * [info]    1000      VectorConversionUsingMap     13.2 =
- * [info]    1000  ListBufferConversionUsingMap     23.5 =
- * [info]    1000 ArrayBufferConversionUsingMap     15.5 =
- * [info]    1000    ArraySeqConversionUsingMap     20.6 =
- * [info]    1000       ArrayConversionUsingMap     18.0 =
- * [info]   10000       JavaArrayListConversion    310.1 =
- * [info]   10000        ListConversionUsingMap    261.3 =
- * [info]   10000      VectorConversionUsingMap    147.0 =
- * [info]   10000  ListBufferConversionUsingMap    266.6 =
- * [info]   10000 ArrayBufferConversionUsingMap    185.9 =
- * [info]   10000    ArraySeqConversionUsingMap    271.5 =
- * [info]   10000       ArrayConversionUsingMap    192.9 =
- * [info]  100000       JavaArrayListConversion   4646.5 =
- * [info]  100000        ListConversionUsingMap   8243.2 =
- * [info]  100000      VectorConversionUsingMap   2795.4 =
- * [info]  100000  ListBufferConversionUsingMap   8643.0 =
- * [info]  100000 ArrayBufferConversionUsingMap   2371.4 =
- * [info]  100000    ArraySeqConversionUsingMap   3626.5 =
- * [info]  100000       ArrayConversionUsingMap   2161.6 =
- * [info] 1000000       JavaArrayListConversion 143581.3 ==============
- * [info] 1000000        ListConversionUsingMap 304757.2 =============================
- * [info] 1000000      VectorConversionUsingMap  52584.8 =====
- * [info] 1000000  ListBufferConversionUsingMap 305284.2 ==============================
- * [info] 1000000 ArrayBufferConversionUsingMap  86364.9 ========
- * [info] 1000000    ArraySeqConversionUsingMap  81252.0 =======
- * [info] 1000000       ArrayConversionUsingMap  25200.0 ==
+ * [info]    size                                    benchmark       us linear runtime
+ * [info]    1000                      JavaArrayListConversion     53.1 =
+ * [info]    1000 JavaArrayListAsScalaBufferConversionUsingMap     34.3 =
+ * [info]    1000                       ListConversionUsingMap     40.4 =
+ * [info]    1000                     VectorConversionUsingMap     30.8 =
+ * [info]    1000                 ListBufferConversionUsingMap     57.0 =
+ * [info]    1000                ArrayBufferConversionUsingMap     25.6 =
+ * [info]    1000                   ArraySeqConversionUsingMap     50.1 =
+ * [info]    1000                      ArrayConversionUsingMap     46.2 =
+ * [info]   10000                      JavaArrayListConversion    584.2 =
+ * [info]   10000 JavaArrayListAsScalaBufferConversionUsingMap    477.3 =
+ * [info]   10000                       ListConversionUsingMap    517.2 =
+ * [info]   10000                     VectorConversionUsingMap    245.6 =
+ * [info]   10000                 ListBufferConversionUsingMap    487.6 =
+ * [info]   10000                ArrayBufferConversionUsingMap    263.6 =
+ * [info]   10000                   ArraySeqConversionUsingMap    412.9 =
+ * [info]   10000                      ArrayConversionUsingMap    386.7 =
+ * [info]  100000                      JavaArrayListConversion   7852.7 =
+ * [info]  100000 JavaArrayListAsScalaBufferConversionUsingMap   5238.7 =
+ * [info]  100000                       ListConversionUsingMap  14143.7 =
+ * [info]  100000                     VectorConversionUsingMap   6782.6 =
+ * [info]  100000                 ListBufferConversionUsingMap  18688.0 =
+ * [info]  100000                ArrayBufferConversionUsingMap   3936.0 =
+ * [info]  100000                   ArraySeqConversionUsingMap   6100.8 =
+ * [info]  100000                      ArrayConversionUsingMap   4422.4 =
+ * [info] 1000000                      JavaArrayListConversion 271360.8 ==============
+ * [info] 1000000 JavaArrayListAsScalaBufferConversionUsingMap 140096.8 =======
+ * [info] 1000000                       ListConversionUsingMap 509999.0 ===========================
+ * [info] 1000000                     VectorConversionUsingMap  94353.6 =====
+ * [info] 1000000                 ListBufferConversionUsingMap 565419.0 ==============================
+ * [info] 1000000                ArrayBufferConversionUsingMap 169984.3 =========
+ * [info] 1000000                   ArraySeqConversionUsingMap 110458.1 =====
+ * [info] 1000000                      ArrayConversionUsingMap  44557.1 ==
  *
  */
 
@@ -75,6 +80,13 @@ class ListConversionBenchmark extends SimpleBenchmark {
       for (i <- 0 until javaList.size()) {
         list.add(javaList.get(i) * 2);
       }
+    }
+  }
+
+  def timeJavaArrayListAsScalaBufferConversionUsingMap(reps: Int) {
+    for (i <- 1 to reps) {
+      val scalaBuffer = asScalaBuffer(javaList)
+      scalaBuffer.map(_ * 2)
     }
   }
 

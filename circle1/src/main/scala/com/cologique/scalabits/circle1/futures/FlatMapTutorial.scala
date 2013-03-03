@@ -5,7 +5,7 @@ object FlatMapTutorial extends App {
   /*
    * Many monads may be considered as a data structure on a "substrate" type
    * with slots of the given type, basically generalized collections. 
-   * We'll call these slotted monads. This is my (AB) terminology for 
+   * We'll call these slotted monads. This is my (Azad Bolour) terminology for 
    * pedagogical purposes only.
    *
    * For example, List[String] is a slotted monad having an arbitrary number of 
@@ -167,7 +167,7 @@ object FlatMapTutorial extends App {
 
   /*
    * Our original pipelines were not nested. They looked similar to unix pipes.
-   * The for comprehension pipeline, on the other hand is nested. This allows the 
+   * The for comprehension pipeline, on the other hand, is nested. This allows the 
    * values traversed by the nested flatMaps to be available to the final mapper
    * (in its closure), thus affording more expressive power than a "flat" pipeline
    * of flatMaps.

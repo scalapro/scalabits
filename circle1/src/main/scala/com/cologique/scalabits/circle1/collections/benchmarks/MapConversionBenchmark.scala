@@ -5,21 +5,26 @@ import com.google.caliper.Runner
 import com.google.caliper.Param
 import com.google.common.collect.ImmutableList
 import java.util.HashMap
+import collection.JavaConversions._
 
 /**
- * [info]    size             benchmark      us linear runtime
- * [info]    1000  JavaHashMapCoversion     104 =
- * [info]    1000         MapConversion     226 =
- * [info]    1000 MutuableMapConversion     160 =
- * [info]   10000  JavaHashMapCoversion    1078 =
- * [info]   10000         MapConversion    3251 =
- * [info]   10000 MutuableMapConversion    1421 =
- * [info]  100000  JavaHashMapCoversion   29875 =
- * [info]  100000         MapConversion  105295 ==
- * [info]  100000 MutuableMapConversion   44888 =
- * [info] 1000000  JavaHashMapCoversion  497962 ============
- * [info] 1000000         MapConversion 1211846 ==============================
- * [info] 1000000 MutuableMapConversion  658148 ================
+ * [info]    size                      benchmark      us linear runtime
+ * [info]    1000           JavaHashMapCoversion     107 =
+ * [info]    1000 JavaHashMapAsScalaMapCoversion     122 =
+ * [info]    1000         ImmutableMapConversion     228 =
+ * [info]    1000          MutuableMapConversion     125 =
+ * [info]   10000           JavaHashMapCoversion     869 =
+ * [info]   10000 JavaHashMapAsScalaMapCoversion    1280 =
+ * [info]   10000         ImmutableMapConversion    3315 =
+ * [info]   10000          MutuableMapConversion    1314 =
+ * [info]  100000           JavaHashMapCoversion   23777 =
+ * [info]  100000 JavaHashMapAsScalaMapCoversion   39113 =
+ * [info]  100000         ImmutableMapConversion  122035 =
+ * [info]  100000          MutuableMapConversion   45036 =
+ * [info] 1000000           JavaHashMapCoversion  912504 =========
+ * [info] 1000000 JavaHashMapAsScalaMapCoversion 2103002 =====================
+ * [info] 1000000         ImmutableMapConversion 2970971 ==============================
+ * [info] 1000000          MutuableMapConversion 1230317 ============
  */
 
 object MapConversionBenchmark extends App {
@@ -63,8 +68,14 @@ class MapConversionBenchmark extends SimpleBenchmark {
     for (i <- 1 to reps) {
       val map = new java.util.HashMap[Int, Int]()
       for (i <- 0 until size) {
-        map.put(i, i)
+        map.put(i, javaMap.get(i))
       }
+    }
+  }
+
+  def timeJavaHashMapAsScalaMapCoversion(reps: Int) {
+    for (i <- 1 to reps) {
+      mapAsScalaMap(javaMap).map { case (a, b) => (a, b * 2) }
     }
   }
 

@@ -1,5 +1,8 @@
 package com.cologique.scalabits.circle1.futures
 
+import akka.dispatch.Future
+import akka.actor.ActorSystem
+
 object FlatMapTutorial extends App {
 
   /*
@@ -57,6 +60,13 @@ object FlatMapTutorial extends App {
   val length4 = option4 map { _.length }
   println(length4)
 
+  /**
+   * A mapper applied to a list monad.
+   */
+  val list1 = List(1, 2, 3, 4)
+  val tripleList1 = list1 map triple
+  println(tripleList1)
+
   /*
    * Suppose now that for a mapper: Substrate1 => Substrate2, the range, Substrate2, 
    * is itself a slotted monad. The result of applying the map to a slotted monad
@@ -64,7 +74,41 @@ object FlatMapTutorial extends App {
    */
 
   /**
-   * A monad-producing mapper: String => List[String]
+   * A monad-producing mapper: sqrt: Double => Option(Double)
+   */
+  def sqrt(n: Int): Option[Double] = {
+    val d: Double = n
+    val root = math.sqrt(d)
+    if (root.isNaN()) None else Some(root)
+  }
+
+  /**
+   * Nested option of Double.
+   */
+  val sq1 = option1 map sqrt
+  println(sq1)
+  val sqNone = option2 map sqrt
+  println(sqNone)
+
+  /**
+   * Another monad-producing mapper: Int => List[Double] -
+   * compute all square roots of an integer and return them in a list.
+   */
+  def allSqrts(n: Int): List[Double] = {
+    val d: Double = n
+    val root = math.sqrt(d)
+
+    if (root.isNaN) List.empty else List(root, -root)
+  }
+
+  /**
+   * Nested list for square roots of a set of numbers.
+   */
+  val sqList1 = List(1, -1, 4, -4, 100, -100) map allSqrts
+  println(sqList1)
+
+  /**
+   * Another list-monad-producing mapper: String => List[String]
    */
   def prefixes(s: String): List[String] = (1 to s.length) map { s.substring(0, _) } toList
 
@@ -80,13 +124,30 @@ object FlatMapTutorial extends App {
    * So the result is no longer a nested monad but an ordinary monad. And this makes
    * it possible to pipe the result into another monad-producing mapper in a 
    * composition pipeline.
+   * 
+   * Note. In monad terminology flatMap is the "bind" function.
    */
 
-  val flatWordPrefixes = words flatMap prefixes
-  println(flatWordPrefixes)
+  /**
+   * flatMap produces a normal monad - not a nested one.
+   */
+  val sqrt1 = option1 flatMap sqrt
+  println(sqrt1)
+
+  /**
+   * flatMap correctly propagates the None option.
+   */
+  val sqrtNone = option2 flatMap sqrt
+  println(sqrtNone)
+
+  /**
+   * flatMap produces the None option when the monad producer returns None.
+   */
+  val sqrtMinus1 = Option(-1) flatMap sqrt
+  println(sqrtMinus1)
 
   /*
-   * A monad-producing mapper: String => Option[String]
+   * Another monad-producing mapper: String => Option[String]
    */
   def lookup(word: String): Option[String] = {
     words.find(_ == word)
@@ -109,8 +170,19 @@ object FlatMapTutorial extends App {
   println(noneOption2)
 
   /*
-   * With this machinery we can set up a compositional pipeline of monad producers.
+   * With this machinery, we can now set up a compositional pipeline of monad producers.
    */
+
+  /*
+   * Getting back to the prefixes list-monad-producing function.
+   */
+
+  // Tiny pipeline.
+
+  val flatWordPrefixes = words flatMap prefixes
+  println(flatWordPrefixes)
+
+  // Two-element pipeline.
 
   val pipeResult = words flatMap prefixes flatMap { (s: String) => List(s, s + s) }
   println(pipeResult)
@@ -154,7 +226,7 @@ object FlatMapTutorial extends App {
   /*
    * This final structure is isomorphic to a for comprehension. In fact, the meaning
    * of a for comprehension is defined as such a nested pipeline.
-   */ 
+   */
   val forComprehensionPrefixes =
     for (
       word <- words;
@@ -174,7 +246,27 @@ object FlatMapTutorial extends App {
    * 
    * The final mapper is the argument to yield.
    */
-  
+
+  // Nested pipeline using closed variables from outer scopes.
+
+  val wordPrefixPairs = words flatMap { word => prefixes(word) map { prefix => (word, prefix) } }
+  println(wordPrefixPairs)
+
+  val opt16 = Option(16)
+  val opt81 = Option(81)
+
+  println(opt16 flatMap { (number: Int) => sqrt(number) })
+
+  val fourthRt = opt16 flatMap {
+    (number: Int) =>
+      sqrt(number) flatMap
+        { (root: Double) =>
+          sqrt(root.toInt) map
+            { (fourthRoot: Double) => ("4'th root", number, fourthRoot) }
+        }
+  }
+  println(fourthRt)
+
   /*
    * Futures are another example of a slotted monad. 
    * 
@@ -182,5 +274,84 @@ object FlatMapTutorial extends App {
    * in a pipeline of function composition, the flatMap function of Future
    * propagates incompleteness in a pipeline of function composition.
    */
-  
+
+  // Let's start with independent options.
+
+  val optionsTupleByFlatMap =
+    Option(1) flatMap { (x1: Int) =>
+      Option(2) flatMap { (x2: Int) =>
+        Option(3) map { (x3: Int) =>
+          (x1, x2, x3)
+        }
+      }
+    }
+
+  val optionsTupleByForComprehension = for (
+    x1 <- Option(1);
+    x2 <- Option(2);
+    x3 <- Option(3)
+  ) yield (x1, x2, x3)
+
+  println(optionsTupleByFlatMap == optionsTupleByForComprehension)
+
+  // Here are the isomorphic construction for independent futures.
+
+  implicit val system = ActorSystem("future")
+  def shutdownActorSystem = system.shutdown
+
+  val futuresTupleByFlatMap =
+    Future(1) flatMap { (x1: Int) =>
+      Future(2) flatMap { (x2: Int) =>
+        Future(3) map { (x3: Int) =>
+          (x1, x2, x3)
+        }
+      }
+    }
+
+  futuresTupleByFlatMap onSuccess {
+    case (x1, x2, x3) => println("sum via flatMap futures: " + (x1 + x2 + x3))
+  }
+
+  val futuresTupleByForComprehension = for (
+    x1 <- Future(1);
+    x2 <- Future(2);
+    x3 <- Future(3)
+  ) yield (x1, x2, x3)
+
+  futuresTupleByForComprehension onSuccess {
+    case (x1, x2, x3) => println("sum via for comprehension futures: " + (x1 + x2 + x3))
+  }
+
+  /*
+   * Now let's actually compose futures by using future-producing functions.
+   */
+
+  def slowDouble(num: Int): Future[Int] = {
+    def double: Int = {
+      Thread.sleep(200)
+      return 2 * num
+    }
+    return Future(double)
+  }
+
+  val startTime = System.currentTimeMillis
+  val eightTimesFutureByFlatMap = Future(5) flatMap slowDouble flatMap slowDouble flatMap slowDouble
+
+  eightTimesFutureByFlatMap onSuccess {
+    case q: Int => println("8 * 5 (by flatMap futures = " + q + " - computed in: " + (System.currentTimeMillis - startTime) + " millis")
+  }
+
+  val eightTimesFutureByForComprehension = for (
+    x1 <- Future(5);
+    x2 <- slowDouble(x1);
+    x3 <- slowDouble(x2);
+    x4 <- slowDouble(x3)
+  ) yield (x4)
+
+  eightTimesFutureByForComprehension onSuccess {
+    case q: Int => println("8 * 5 (by for comprehension futures) = " + q + " - computed in: " + (System.currentTimeMillis - startTime) + " millis")
+  }
+
+  shutdownActorSystem
+
 }

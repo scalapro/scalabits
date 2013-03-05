@@ -7,8 +7,8 @@ object FlatMapTutorial extends App {
 
   /*
    * Many monads may be considered as a data structure on a "substrate" type
-   * with slots of the given type, basically generalized collections. 
-   * We'll call these slotted monads. This is my (Azad Bolour) terminology for 
+   * with slots of that type, basically, generalized collections. 
+   * We'll call these "slotted monads". This is my (Azad Bolour) terminology for 
    * pedagogical purposes only.
    *
    * For example, List[String] is a slotted monad having an arbitrary number of 
@@ -33,18 +33,23 @@ object FlatMapTutorial extends App {
    */
   def triple(i: Int) = 3 * i
 
+  /**
+   * A monad of substrate type Int.
+   */
   val option1 = Option(1)
+
+  /**
+   * Application of the mapper.
+   */
   val tripleOption1 = option1 map triple
   println(tripleOption1)
 
-  // A special case of a slotted monad is one that has no slots.
-
-  val option2: Option[Int] = None
-
   /*
+   * A special case of a slotted monad is one that has no slots.
    * In this case, there are no values to apply the function to, but 
-   * the structure of the monad (emptiness) is preserved.
+   * the structure of the monad, that is, emptiness, is preserved.
    */
+  val option2: Option[Int] = None
   val tripleOption2 = option2 map triple
   println(tripleOption2)
   println(tripleOption2.isEmpty)
@@ -83,7 +88,7 @@ object FlatMapTutorial extends App {
   }
 
   /**
-   * Nested option of Double.
+   * A monad-producing mapper, mapped on a monad, produces a nested monad.
    */
   val sq1 = option1 map sqrt
   println(sq1)
@@ -97,12 +102,11 @@ object FlatMapTutorial extends App {
   def allSqrts(n: Int): List[Double] = {
     val d: Double = n
     val root = math.sqrt(d)
-
     if (root.isNaN) List.empty else List(root, -root)
   }
 
   /**
-   * Nested list for square roots of a set of numbers.
+   * Nested list for square roots of a set of integers.
    */
   val sqList1 = List(1, -1, 4, -4, 100, -100) map allSqrts
   println(sqList1)
@@ -117,16 +121,31 @@ object FlatMapTutorial extends App {
   println(wordPrefixes)
 
   /*
-   * There are a variety of applications where we need to be able to compose
-   * monad-producing mappers. This is where flatMap comes in.
-   *
+   * So far so good.
+   * 
+   * Now there are a variety of applications where we need to be able to compose
+   * monad-producing mappers. 
+   * 
+   * Consider the functions:
+   * 
+   * 	find: Criteria => List[Person]
+   * 	children: Person => List[Person]
+   * 
+   * These are list monad producers and the output of the first is compatible with 
+   * the input of the second. The natural composition of these monoad producers is 
+   * function that takes a criteria and returns the children of all persons
+   * satisfying that criteria. The composition is similar to a relational join.
+   * 
+   * This is where Scala's flatMap comes in (in monad terminology, this is a "bind"
+   * operation).
+   * 
    * flatMap flattens the result of applying a monad-producing mapper to a monad.
    * So the result is no longer a nested monad but an ordinary monad. And this makes
    * it possible to pipe the result into another monad-producing mapper in a 
    * composition pipeline.
-   * 
-   * Note. In monad terminology flatMap is the "bind" function.
    */
+
+  // To keep things simple, et's continue with our simple integer and string examples above.
 
   /**
    * flatMap produces a normal monad - not a nested one.
@@ -159,15 +178,6 @@ object FlatMapTutorial extends App {
 
   val flatFoxOption = foxOption flatMap lookup
   println(flatFoxOption)
-
-  // What would happen with None??
-
-  val noneOption: Option[String] = None
-  val noneOption1 = noneOption map lookup
-  println(noneOption1)
-
-  val noneOption2 = noneOption flatMap lookup
-  println(noneOption2)
 
   /*
    * With this machinery, we can now set up a compositional pipeline of monad producers.
@@ -204,10 +214,15 @@ object FlatMapTutorial extends App {
   val pipeResult3 = words flatMap prefixes map { _.length } flatMap plusOrMinus
   println(pipeResult3)
 
-  // For comprehension is syntactic sugar for a combination of map and flatMap.
+  /*
+  * The Scala for comprehension is syntactic sugar for a combination of 
+  * flatMap and map.
+  * 
+  * We'll first incrementally refactor our tiny prefixes pipeline to 
+  * look more like a for comprehension.
+  */
 
-  // Let's resurrect our simple flatMap example with prefixes, 
-  // and incrementally refactor it to a for comprehension.
+  // First, the tiny pipeline.
 
   val flatPrefixes = words flatMap prefixes
   println(flatPrefixes)
@@ -218,7 +233,7 @@ object FlatMapTutorial extends App {
   println(flatPrefixes1 == flatPrefixes)
 
   // Next add a final nested mapper.
-  // In this case the final mapper is the identity function and superfluous.
+  // In this case the final mapper is the identity function, and, of course, superfluous.
 
   val flatPrefixes2 = words flatMap { word => prefixes(word) map { prefix => prefix } }
   println(flatPrefixes2 == flatPrefixes)
@@ -240,11 +255,11 @@ object FlatMapTutorial extends App {
   /*
    * Our original pipelines were not nested. They looked similar to unix pipes.
    * The for comprehension pipeline, on the other hand, is nested. This allows the 
-   * values traversed by the nested flatMaps to be available to the final mapper
-   * (in its closure), thus affording more expressive power than a "flat" pipeline
-   * of flatMaps.
+   * values traversed by earlier flatMaps to be available to the later flatMaps,
+   * and to the final mapper (in closures). So thanks to closure, a nested pipeline
+   * affords us significantly more expressive power than a "flat" pipeline.
    * 
-   * The final mapper is the argument to yield.
+   * Note that the final mapper is the argument to yield.
    */
 
   // Nested pipeline using closed variables from outer scopes.
@@ -252,11 +267,14 @@ object FlatMapTutorial extends App {
   val wordPrefixPairs = words flatMap { word => prefixes(word) map { prefix => (word, prefix) } }
   println(wordPrefixPairs)
 
-  val opt16 = Option(16)
-  val opt81 = Option(81)
+  // Here is another example where nesting comes in handy.
 
+  val opt16 = Option(16)
+
+  // This does not have to be nested.
   println(opt16 flatMap { (number: Int) => sqrt(number) })
 
+  // But this does have to be nested.
   val fourthRt = opt16 flatMap {
     (number: Int) =>
       sqrt(number) flatMap
@@ -271,11 +289,12 @@ object FlatMapTutorial extends App {
    * Futures are another example of a slotted monad. 
    * 
    * Just as the flatMap function for Option propagates the notion of emptiness
-   * in a pipeline of function composition, the flatMap function of Future
-   * propagates incompleteness in a pipeline of function composition.
+   * in a pipeline of option-producing function composition, the flatMap function of 
+   * Future propagates the notion of incompleteness in a pipeline of future-producing 
+   * function composition.
    */
 
-  // Let's start with independent options.
+  // Let's start with independent options first.
 
   val optionsTupleByFlatMap =
     Option(1) flatMap { (x1: Int) =>
@@ -326,6 +345,9 @@ object FlatMapTutorial extends App {
    * Now let's actually compose futures by using future-producing functions.
    */
 
+  /**
+   * A future-producing function.
+   */
   def slowDouble(num: Int): Future[Int] = {
     def double: Int = {
       Thread.sleep(200)
@@ -334,12 +356,14 @@ object FlatMapTutorial extends App {
     return Future(double)
   }
 
-  val startTime = System.currentTimeMillis
+  val startTime1 = System.currentTimeMillis
   val eightTimesFutureByFlatMap = Future(5) flatMap slowDouble flatMap slowDouble flatMap slowDouble
 
   eightTimesFutureByFlatMap onSuccess {
-    case q: Int => println("8 * 5 (by flatMap futures = " + q + " - computed in: " + (System.currentTimeMillis - startTime) + " millis")
+    case q: Int => println("8 * 5 (by flatMap futures = " + q + " - computed in: " + (System.currentTimeMillis - startTime1) + " millis")
   }
+
+  val startTime2 = System.currentTimeMillis
 
   val eightTimesFutureByForComprehension = for (
     x1 <- Future(5);
@@ -349,7 +373,7 @@ object FlatMapTutorial extends App {
   ) yield (x4)
 
   eightTimesFutureByForComprehension onSuccess {
-    case q: Int => println("8 * 5 (by for comprehension futures) = " + q + " - computed in: " + (System.currentTimeMillis - startTime) + " millis")
+    case q: Int => println("8 * 5 (by for comprehension futures) = " + q + " - computed in: " + (System.currentTimeMillis - startTime2) + " millis")
   }
 
   shutdownActorSystem

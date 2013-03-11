@@ -5,6 +5,8 @@ import akka.actor.ActorSystem
 
 object FlatMapTutorial extends App {
 
+  def show(value: Any, description: String) = println(description + " = " + value)
+
   /*
    * Many monads may be considered as a data structure on a "substrate" type
    * with slots of that type, basically, generalized collections. 
@@ -38,39 +40,41 @@ object FlatMapTutorial extends App {
    */
   val option1 = Option(1)
 
+  println("Simple Maps\n")
+  
   /**
    * Application of the mapper.
    */
   val tripleOption1 = option1 map triple
-  println(tripleOption1)
+  show(tripleOption1, "Option(1) map triple")
 
   /*
    * A special case of a slotted monad is one that has no slots.
    * In this case, there are no values to apply the function to, but 
    * the structure of the monad, that is, emptiness, is preserved.
    */
-  val option2: Option[Int] = None
-  val tripleOption2 = option2 map triple
-  println(tripleOption2)
-  println(tripleOption2.isEmpty)
+  val none1: Option[Int] = None
+  val tripleNone1 = none1 map triple
+  show(tripleNone1, "None map triple")
+  show(tripleNone1.isEmpty, "None map triple is empty")
 
   /**
    * Another mapper: length: String => Int
    */
   val option3 = Option("xyz")
   val length3 = option3 map { _.length }
-  println(length3)
+  show(length3, "Option(\"xyz\") map length")
 
-  val option4: Option[String] = None
-  val length4 = option4 map { _.length }
-  println(length4)
+  val none2: Option[String] = None
+  val lengthNone2 = none2 map { _.length }
+  show(lengthNone2, "None map length")
 
   /**
    * A mapper applied to a list monad.
    */
   val list1 = List(1, 2, 3, 4)
   val tripleList1 = list1 map triple
-  println(tripleList1)
+  show(tripleList1, "List(1, 2, 3, 4) map triple")
 
   /*
    * Suppose now that for a mapper: Substrate1 => Substrate2, the range, Substrate2, 
@@ -78,6 +82,8 @@ object FlatMapTutorial extends App {
    * is then a nested monad.
    */
 
+  println("\nMonad-Producing Mappers\n")
+  
   /**
    * A monad-producing mapper: sqrt: Double => Option(Double)
    */
@@ -91,9 +97,9 @@ object FlatMapTutorial extends App {
    * A monad-producing mapper, mapped on a monad, produces a nested monad.
    */
   val sq1 = option1 map sqrt
-  println(sq1)
-  val sqNone = option2 map sqrt
-  println(sqNone)
+  show(sq1, "Option(1) map sqrt")
+  val sqNone = none1 map sqrt
+  show(sqNone, "None map sqrt")
 
   /**
    * Another monad-producing mapper: Int => List[Double] -
@@ -109,7 +115,7 @@ object FlatMapTutorial extends App {
    * Nested list for square roots of a set of integers.
    */
   val sqList1 = List(1, -1, 4, -4, 100, -100) map allSqrts
-  println(sqList1)
+  show(sqList1, "List(1, -1, 4, -4, 100, -100) map allSqrts")
 
   /**
    * Another list-monad-producing mapper: String => List[String]
@@ -118,7 +124,7 @@ object FlatMapTutorial extends App {
 
   val words = List("the", "quick", "brown", "fox")
   val wordPrefixes = words map prefixes
-  println(wordPrefixes)
+  show(wordPrefixes, "List(\"the\", \"quick\", \"brown\", \"fox\") map prefixes")
 
   /*
    * So far so good.
@@ -147,23 +153,25 @@ object FlatMapTutorial extends App {
 
   // To keep things simple, et's continue with our simple integer and string examples above.
 
+  println("\nFlattening of Nested Monads\n")
+  
   /**
    * flatMap produces a normal monad - not a nested one.
    */
   val sqrt1 = option1 flatMap sqrt
-  println(sqrt1)
+  show(sqrt1, "Option(1) flatMap sqrt)")
 
   /**
    * flatMap correctly propagates the None option.
    */
-  val sqrtNone = option2 flatMap sqrt
-  println(sqrtNone)
+  val sqrtNone = none1 flatMap sqrt
+  show(sqrtNone, "None flatMap sqrt")
 
   /**
    * flatMap produces the None option when the monad producer returns None.
    */
   val sqrtMinus1 = Option(-1) flatMap sqrt
-  println(sqrtMinus1)
+  show(sqrtMinus1, "Option(-1) flatMap sqrt")
 
   /*
    * Another monad-producing mapper: String => Option[String]
@@ -172,30 +180,34 @@ object FlatMapTutorial extends App {
     words.find(_ == word)
   }
 
+  println("lookup(word: String) = List(\"the\", \"quick\", \"brown\", \"fox\").find(_ == word)")
+
   val foxOption = Option("fox")
   val nestedFoxOption = foxOption map lookup
-  println(nestedFoxOption)
+  show(nestedFoxOption, "Option(\"fox\") map lookup")
 
   val flatFoxOption = foxOption flatMap lookup
-  println(flatFoxOption)
+  show(flatFoxOption, "Option(\"fox\") flatMap lookup")
 
   /*
    * With this machinery, we can now set up a compositional pipeline of monad producers.
    */
 
+  println("\nMonadic Pipelines\n")
   /*
    * Getting back to the prefixes list-monad-producing function.
    */
 
+  show(words, "words")
   // Tiny pipeline.
 
   val flatWordPrefixes = words flatMap prefixes
-  println(flatWordPrefixes)
+  show(flatWordPrefixes, "1-step pipeline: \n  words flatMap prefixes")
 
   // Two-element pipeline.
 
   val pipeResult = words flatMap prefixes flatMap { (s: String) => List(s, s + s) }
-  println(pipeResult)
+  show(pipeResult, "2-step pipieline: \n  words flatMap prefixes flatMap { (s: String) => List(s, s + s) }")
 
   /*
    * We could also mix in maps in such a pipeline. A map takes a monad and produces
@@ -204,7 +216,7 @@ object FlatMapTutorial extends App {
    */
 
   val pipeResult2 = words flatMap prefixes map { _.length }
-  println(pipeResult2)
+  show(pipeResult2, "pipeline of flatMap and map: \n  words flatMap prefixes map { _.length }")
 
   /**
    * An integer monad producer.
@@ -212,7 +224,7 @@ object FlatMapTutorial extends App {
   def plusOrMinus(i: Int) = List(i, -i)
 
   val pipeResult3 = words flatMap prefixes map { _.length } flatMap plusOrMinus
-  println(pipeResult3)
+  show(pipeResult3, "flatMaps and maps mixed in a pipeline: \n  words flatMap prefixes map { _.length } flatMap plusOrMinus")
 
   /*
   * The Scala for comprehension is syntactic sugar for a combination of 
@@ -222,21 +234,25 @@ object FlatMapTutorial extends App {
   * look more like a for comprehension.
   */
 
+  println("Towards For Comprehensions")
+
   // First, the tiny pipeline.
 
   val flatPrefixes = words flatMap prefixes
-  println(flatPrefixes)
+  show(flatPrefixes, "- 1-step pipeline: \n  words flatMap prefixes")
 
   // Next nest flatMap's monad-producing function.
 
   val flatPrefixes1 = words flatMap { word => prefixes(word) }
-  println(flatPrefixes1 == flatPrefixes)
+  show(flatPrefixes1, "- nest the monad-producer in pipeline: \n  words flatMap { word => prefixes(word) }")
+  assert(flatPrefixes1 == flatPrefixes)
 
   // Next add a final nested mapper.
   // In this case the final mapper is the identity function, and, of course, superfluous.
 
   val flatPrefixes2 = words flatMap { word => prefixes(word) map { prefix => prefix } }
-  println(flatPrefixes2 == flatPrefixes)
+  show(flatPrefixes2, "- add a final mapper: \n  words flatMap { word => prefixes(word) map { prefix => prefix } }")
+  assert(flatPrefixes2 == flatPrefixes)
 
   /*
    * This final structure is isomorphic to a for comprehension. In fact, the meaning
@@ -248,9 +264,9 @@ object FlatMapTutorial extends App {
       prefix <- prefixes(word)
     ) yield (prefix)
 
-  println(forComprehensionPrefixes)
+  show(forComprehensionPrefixes, "- transform to for comprehension: \n  for (word <- words; prefix <- prefixes(word)) yield (prefix)")
 
-  println(forComprehensionPrefixes == flatPrefixes)
+  assert(forComprehensionPrefixes == flatPrefixes)
 
   /*
    * Our original pipelines were not nested. They looked similar to unix pipes.
@@ -262,17 +278,19 @@ object FlatMapTutorial extends App {
    * Note that the final mapper is the argument to yield.
    */
 
+  println("\nNested Pipelines\n")
+  
   // Nested pipeline using closed variables from outer scopes.
 
   val wordPrefixPairs = words flatMap { word => prefixes(word) map { prefix => (word, prefix) } }
-  println(wordPrefixPairs)
+  show(wordPrefixPairs, "nested pipeline with closure in final mapper: \n  words flatMap { word => prefixes(word) map { prefix => (word, prefix) } }")
 
   // Here is another example where nesting comes in handy.
 
   val opt16 = Option(16)
 
   // This does not have to be nested.
-  println(opt16 flatMap { (number: Int) => sqrt(number) })
+  show(opt16 flatMap { (number: Int) => sqrt(number) }, "Option(16) flatMap { (number: Int) => sqrt(number) }")
 
   // But this does have to be nested.
   val fourthRt = opt16 flatMap {
@@ -280,7 +298,7 @@ object FlatMapTutorial extends App {
       sqrt(number) flatMap
         { (root: Double) =>
           sqrt(root.toInt) map
-            { (fourthRoot: Double) => ("4'th root", number, fourthRoot) }
+            { (fourthRoot: Double) => ("4'th root of " + number + " = " + fourthRoot) }
         }
   }
   println(fourthRt)
@@ -311,9 +329,11 @@ object FlatMapTutorial extends App {
     x3 <- Option(3)
   ) yield (x1, x2, x3)
 
-  println(optionsTupleByFlatMap == optionsTupleByForComprehension)
+  assert(optionsTupleByFlatMap == optionsTupleByForComprehension)
 
   // Here are the isomorphic construction for independent futures.
+  
+  println("\nNested Pipelines of Futures\n")
 
   implicit val system = ActorSystem("future")
   def shutdownActorSystem = system.shutdown

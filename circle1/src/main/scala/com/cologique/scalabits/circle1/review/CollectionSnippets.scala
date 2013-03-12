@@ -42,7 +42,10 @@ object CollectionSnippets extends App {
   val intersection = set & set2
   val diff = set &~ set2
   val s = set + 1
-
+  val s2 = set + (3, 4, 5) // works (type coercion?) ... but the following does not.
+  val t345 = (3, 4, 5)
+  // val s3 = set + t345 // type mismatch; found : (Int, Int, Int) required : Int
+  
   // Colon operator invoked via method notation. 
   val appended = list.:+(1000) // Not efficient for lists.
   println(appended)

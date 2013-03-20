@@ -138,8 +138,8 @@ object FlatMapTutorial extends App {
    * 	children: Person => List[Person]
    * 
    * These are list monad producers and the output of the first is compatible with 
-   * the input of the second. The natural composition of these monoad producers is 
-   * function that takes a criteria and returns the children of all persons
+   * the input of the second. The natural composition of these monod producers is 
+   * a function that takes a criteria and returns the children of all persons
    * satisfying that criteria. The composition is similar to a relational join.
    * 
    * This is where Scala's flatMap comes in (in monad terminology, this is a "bind"
@@ -151,7 +151,7 @@ object FlatMapTutorial extends App {
    * composition pipeline.
    */
 
-  // To keep things simple, et's continue with our simple integer and string examples above.
+  // To keep things simple, let's continue with our simple integer and string examples above.
 
   println("\nFlattening of Nested Monads\n")
   
@@ -199,6 +199,7 @@ object FlatMapTutorial extends App {
    */
 
   show(words, "words")
+  
   // Tiny pipeline.
 
   val flatWordPrefixes = words flatMap prefixes
@@ -207,7 +208,7 @@ object FlatMapTutorial extends App {
   // Two-element pipeline.
 
   val pipeResult = words flatMap prefixes flatMap { (s: String) => List(s, s + s) }
-  show(pipeResult, "2-step pipieline: \n  words flatMap prefixes flatMap { (s: String) => List(s, s + s) }")
+  show(pipeResult, "2-step pipeline: \n  words flatMap prefixes flatMap { (s: String) => List(s, s + s) }")
 
   /*
    * We could also mix in maps in such a pipeline. A map takes a monad and produces
@@ -331,7 +332,7 @@ object FlatMapTutorial extends App {
 
   assert(optionsTupleByFlatMap == optionsTupleByForComprehension)
 
-  // Here are the isomorphic construction for independent futures.
+  // Here are the isomorphic constructions for independent futures.
   
   println("\nNested Pipelines of Futures\n")
 

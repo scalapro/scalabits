@@ -14,7 +14,13 @@ cp branch.sh.template to branch.sh and cutomize it to reflect your environment.
 For each project, e.g. circle1:
 
 cd circle1
-sbt compile
+sbt
+> update-classifiers 
+> compile
+> test:compile
+
+Note. update-classifiers downloads sources and javadocs
+
 sbt eclipse # Creates .project and .classpath for Eclipse.
 
 Then -

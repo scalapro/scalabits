@@ -1,10 +1,7 @@
 package com.cologique.scalabits.circle1.slick
 
-import org.scalatest.BeforeAndAfter
-import org.scalatest.WordSpec
-import scala.util.Try
-import org.scalatest.matchers.ShouldMatchers._
 import scala.slick.driver.ExtendedProfile
+import scala.util.Try
 
 /**
  * The database version of an entity class.
@@ -18,9 +15,6 @@ case class Supplier(id: Int, name: String, street: String, city: String, state: 
 
 class SlickSupplierPersister(val driver: ExtendedProfile) {
 
-  // TODO. Changing name "driver" to "slickDriver" leads to compile error!
-  // What is going on here? What are the semantics of "dynamic" import?
-  
   import driver.simple._
 
   object SupplierTable extends Table[Supplier]("supplier") {
@@ -35,12 +29,13 @@ class SlickSupplierPersister(val driver: ExtendedProfile) {
     def * = id ~ name ~ street ~ city ~ state ~ zip <> (Supplier, Supplier.unapply _)
 
   }
-
+  
   /**
    * The supplier data access object.
    *
    * For simplicity just using an object. Not worrying about multiple possible implementations.
-   * Q: The pattern used in Slick multi-db example is to have the wrapper be the dao - remove this object?
+   * Q: The pattern used in Slick multi-db example is to have the wrapper be the dao.
+   * Is that better? One less object?
    * Q: How about combining SupplierTable and SupplierDao into a single object?
    * Note: Using an implicit session parameter in all DAO calls - makes it clear what they depend on.
    * But more verbose than using threadLocalSession.
@@ -95,7 +90,6 @@ class SlickSupplierPersister(val driver: ExtendedProfile) {
       target.update(name)
     }
   }
-
 }
 
 object SlickSupplierPersister {

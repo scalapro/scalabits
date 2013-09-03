@@ -31,15 +31,15 @@ class FirstSlickTest extends WordSpec with BeforeAndAfter {
         val name = supplierDao.nameByID(supplier1.id)
         name should not be ('empty)
         expect(supplier1.name) { name.get }
-        println(name.get)
+        logger.info(name.get)
         
         val newName = "Acme Enterprises"
         
-        (supplierDao.updateName)(supplier1.id, newName)
+        supplierDao.updateName(supplier1.id, newName)
         val updatedName = supplierDao.nameByID(supplier1.id)
         
         expect(newName) { updatedName.get }
-        println(updatedName.get)
+        logger.info(updatedName.get)
       }
     }
   }

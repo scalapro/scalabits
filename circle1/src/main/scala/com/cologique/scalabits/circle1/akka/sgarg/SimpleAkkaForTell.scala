@@ -6,9 +6,9 @@ import akka.actor.Props
 import akka.actor.actorRef2Scala
 
 sealed abstract trait Message
-case class OrderPizza extends Message
-case class Pizza extends Message
-case class Hunger extends Message
+case class OrderPizza() extends Message
+case class Pizza() extends Message
+case class Hunger() extends Message
 
 class PizzaShop extends Actor {
   def receive = {

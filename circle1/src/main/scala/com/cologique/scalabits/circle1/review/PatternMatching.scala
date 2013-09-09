@@ -59,6 +59,7 @@ object PatternMatching extends App {
   list match {
     case Nil => println
     case One :: _ => println("head is 1")
+    case _ => println
   }
 
   2 :: list match {

@@ -51,6 +51,18 @@ object KindedTypeClass {
     }
   }
    
+  /*
+   * Unfortunately, it does not work to have the Aggregator have a second type parameter
+   * for the type of the container's element. The trait would be OK:
+   
+    trait Aggregator[Container[_], Element] {
+      def aggregate(container: Container[Element], monoid: Monoid[Element]): Element
+    }
+  
+  * But then cannot define companion object Aggregator and provide the element type
+  * parameter to the implicits.
+  */
+  
   // Scala allows one implicit parameter list at the end.
   def aggregate[T](xs: List[T])(implicit monoid: Monoid[T], aggregator: Aggregator[List]): T =
     aggregator.aggregate(xs, monoid)              //> aggregate: [T](xs: List[T])(implicit monoid: com.cologique.scalabits.circle

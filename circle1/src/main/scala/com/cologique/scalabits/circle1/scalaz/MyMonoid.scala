@@ -11,7 +11,7 @@ trait MyMonoid[A] {
  * formal parameter.
  */
 object MyMonoid {
-  
+
   implicit object MyIntMonoid extends MyMonoid[Int] {
     def mappend(x: Int, y: Int) = x + y
     def mzero: Int = 0
@@ -21,4 +21,18 @@ object MyMonoid {
     def mappend(x: String, y: String) = x + y
     def mzero: String = ""
   }
+  
 }
+
+object Main {
+
+  def main(args: Array[String]): Unit = {
+    def plus(x: Int, y: Int)(implicit monoid: MyMonoid[Int]) = monoid.mappend(x, y)
+    val sum = plus(4, 5)
+    println(sum)
+    
+    
+  }
+ 
+}
+

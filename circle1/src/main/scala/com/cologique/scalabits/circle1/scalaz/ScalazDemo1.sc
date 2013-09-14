@@ -5,6 +5,7 @@ import Scalaz._
 
 // Sample code based in part on Nick Partridge presentation http://vimeo.com/10482466.
 
+
 object ScalazDemo1 {
 
   // Monoid.

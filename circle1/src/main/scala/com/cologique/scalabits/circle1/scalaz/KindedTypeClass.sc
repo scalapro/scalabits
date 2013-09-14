@@ -59,7 +59,7 @@ object KindedTypeClass {
       def aggregate(container: Container[Element], monoid: Monoid[Element]): Element
     }
   
-  * But then cannot define companion object Aggregator and provide the element type
+  * But then we cannot define a companion object Aggregator and provide the element type
   * parameter to the implicits.
   */
   

@@ -7,6 +7,8 @@ Ask David or Azad to add you as collaborators.
 
 After cloning -
 
+10/31/2013 - use sbt 0.13.0. sbteclipse plugin version used not compatible with sbt 0.12.
+
 cp branch.sh.template to branch.sh and cutomize it to reflect your environment.
 . branch.sh
 [Or equivalent on Windows.]

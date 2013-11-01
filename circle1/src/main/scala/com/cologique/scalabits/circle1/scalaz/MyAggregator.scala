@@ -28,9 +28,10 @@ object AggMain {
     
     def sum[Container[_], Element](list: Container[Element])(implicit aggregator: MyAggregator[Container], monoid: MyMonoid[Element]) =
       aggregator.aggregate(list, monoid)
-      
+
     val s = sum(list1)
     println(s)
+    
   }
 }
    

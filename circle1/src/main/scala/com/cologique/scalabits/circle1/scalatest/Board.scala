@@ -82,6 +82,8 @@ object Board {
     /** add to Pos together **/
     def +(p:Pos):Pos = copy(x = this.x + p.x, y = this.y + p.y)
   }
+  
+  val sep = System.getProperty("line.separator")
 
   //HIDE the Constructor
   //def boardFromString()= {}
@@ -89,7 +91,7 @@ object Board {
 
   /** take in string representation of board and turn it into an IndexSeq of nested IndexSeq as rows of Char **/
   def gridizer(grid:String): IndexedSeq[IndexedSeq[Char]] =
-    IndexedSeq(grid.split("\n").map(str => IndexedSeq(str: _*)): _*)
+    IndexedSeq(grid.split(sep).map(str => IndexedSeq(str: _*)): _*)
 
 
   /**

@@ -25,6 +25,8 @@ libraryDependencies ++= Seq(
 
 EclipseKeys.withSource := true
 
+resolvers += "Maven Central" at "http://repo1.maven.org/maven2"
+
 resolvers += "Sonatype OSS Repo" at "http://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies += "com.google.caliper" % "caliper" % "0.5-rc1"
@@ -36,8 +38,11 @@ libraryDependencies += "com.google.code.gson" % "gson" % "2.2.2"
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
  
 libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0"
+// libraryDependencies += "com.typesafe.akka" % "akka-actor_2.10" % "2.2.3"
 
-libraryDependencies += "com.typesafe.akka" % "akka-remote_2.10" % "2.1.0"
+// libraryDependencies += "com.typesafe.akka" % "akka-remote_2.10" % "2.1.0"
+// libraryDependencies += "com.typesafe.akka" % "akka-remote_2.10" % "2.1.0"
+// libraryDependencies += "com.typesafe.akka" % "akka-remote_2.10" % "2.2.3"
 
 fork in run := true            
 

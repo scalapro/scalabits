@@ -33,3 +33,15 @@ Bring up Eclipse.
 
 Import the projects into Eclipse.
 
+Verified working with Eclipse version:
+
+  Scala IDE build of Eclipse SDK
+  Build id: 3.0.1-vfinal-20130718-1727-Typesafe
+  Eclipse SDK
+  Version: 3.7.2
+  [included built-in update sites:
+  Scala IDE - http://download.scala-ide.org/sdk/e37/scala210/stable/site 
+  The Eclipse Project Updates - http://download.eclipse.org/eclipse/updates/3.7]
+
+  ScalaTest plugin for Scala IDE 2.9.3.v-3-2 10-201310190806-60feeb3 
+  manually installed

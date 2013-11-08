@@ -21,7 +21,6 @@ object MyMonoid {
     def mappend(x: String, y: String) = x + y
     def mzero: String = ""
   }
-  
 }
 
 object Main {
@@ -30,9 +29,6 @@ object Main {
     def plus(x: Int, y: Int)(implicit monoid: MyMonoid[Int]) = monoid.mappend(x, y)
     val sum = plus(4, 5)
     println(sum)
-    
-    
   }
- 
 }
 

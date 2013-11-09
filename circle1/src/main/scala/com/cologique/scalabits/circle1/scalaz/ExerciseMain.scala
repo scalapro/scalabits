@@ -9,6 +9,8 @@ object ExerciseMain extends App {
   def csum[Element, Container[_]](list: List[Container[Element]])(implicit addable: AddableKind[Container]) = 
     (addable.identity[Element] /: list)(addable.+)
     
+  // Note that the type of identity is needed explicitly. TODO. Understand why it is not inferred correctly.
+    
   println(csum(List(Vector(1, 2, 3), Vector(100, 200))))
 
 }

@@ -8,9 +8,18 @@ import akka.actor.actorRef2Scala
 sealed abstract trait Message
 case class OrderPizza extends Message
 case class Pizza extends Message
-case class Hunger extends Message
+case class Hunger(pizzaShop: PizzaShop) extends Message
 
-class PizzaShop extends Actor {
+trait Service {
+
+  sealed abstract trait Message
+  case class OrderPizza extends Message
+  case class Pizza extends Message
+  case class Hunger(pizzaShop: PizzaShop) extends Message
+
+}
+
+class PizzaShop extends Actor with Service{
   def receive = {
     case OrderPizza => {
       println("Pizza Shop: Order received.. making pizza..")
@@ -43,5 +52,7 @@ class Customer extends Actor {
 object SimpleAkkaForTell extends App {
   val system = ActorSystem("PizzaSystem")
   val customer = system.actorOf(Props[Customer], name = "me")
+  val customer1 = system.actorOf(Props[Customer], name = "someoneelse")
   customer ! Hunger
+  customer1 ! Hunger
 }

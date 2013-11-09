@@ -15,13 +15,15 @@ class ImpatientCustomer extends Actor {
       implicit val timeout = Timeout(10000)
       val pizza = pizzaShop ? OrderPizza
       pizza.onSuccess {
-        case Pizza => println("Customer:   Pizza received.. yumm!!")
+        case Pizza => {
+          println("Customer:   Pizza received.. yumm!!")
+          context.system.shutdown
+        }
       }
       while (!pizza.isCompleted) {
-        Thread.sleep(1000)
         println("Customer:  Is it done yet?")
+        Thread.sleep(1000)
       }
-      context.system.shutdown
     }
     case _ => println("Customer:   huh?")
   }

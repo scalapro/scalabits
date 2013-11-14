@@ -1,0 +1,550 @@
+
+Review of For-Comprehensions in Scala
+
+Azad Bolour - azadbolour at bolour com
+
+The Simplified Model
+--------------------
+
+I am going to use a simplified model of for-comprehensions that removes some
+non-essential details so we can focus on the basics. In this model, I will
+ignore filtering and pattern matching. A for-comprehension then has a nested 
+number of **clauses** and a **yield expression**:
+
+	for {
+	    x1 <- exp1 // exp1 is clause 1 or level-1 clause
+	    ....
+	    xn <- expn
+	} yield(result(x1, x2, ..., xn)) // yield expression
+
+I will assume that all the individual clauses have the same generic
+parameterized type, for example, List. The actual types of these
+sub-expressions might differ in the type parameter of their parameterized type.
+For example, a for-comprehension based on the List type may have
+clauses of type List[Int], List[String], etc. I'll call such a generic type
+a **for-comprehensible** type, or for brevity, a **forable** type.
+
+Here is an example:
+
+    val result = for {
+        x1 <- List(1, 2, 3)
+        x2 <- List(x1.toString)
+        x3 <- List(x2, x2 + x2)
+    } yield((x1, x2, x3))                             
+
+result: List[(Int, String, String)] = 
+  List((1,1,1), (1,1,11), (2,2,2), (2,2,22), (3,3,3), (3,3,33))
+
+All levels of this for-comprehension define lists. Note that the entire
+expression's generic type is also a List, and that the type parameter of the
+result list is the type of the yield expression. This is always the case in our
+model.
+
+Consider a for-comprehensible class, Forable[T]. In a given for-comprehension
+based on this class, we let its clauses have types Forable[T1], Forable[T2], etc.,
+and its result have type Forable[Result]. In our list-based example above, T1 =
+Int, T2 = String, T3 = String, and Result = (Int, String, String).
+
+An object of type Forable[T] always has an associated set of values of type T.
+For collections, this associated set is the set of contained values. But we are
+intentionally leaving this notion of "associated" values vague, to allow for
+more general uses of for-comprehensions. I will call the set of values
+associated with a forable object in the context of for-comprehensions, the
+object's **drill-down values** or **drill-down set**. So the drill-down 
+values of Vector(1, 2, 3) are {1, 2, 3}.
+
+The Meaning of a For-Comprehension
+----------------------------------
+
+We'd like a for-comprehension to return the yield expression for each
+combination of drill-down values of its clauses. This intuitive notion is made
+precise by the evaluation model of for-comprehensions.
+
+Since we have an arbitrary number of levels in our for-comprehensions, it makes
+sense to define the evaluation model in a top-down recursive manner, a la
+call-by-value semantics. So we consider a for-comprehension as a function of
+two arguments: the value of its first clause, exp1, and the value of the whole
+of the rest of the for-comprehension, which I will refer to as the **yielder**.
+
+In our example, 
+
+    exp1 = List(1, 2, 3)
+
+    yielder1 = for {
+      x2 <- List(x1.toString)
+      x3 <- List(x2, x2 + x2)
+    } yield((x1, x2, x3))
+
+In yielder1 above (which is not [yet] a valid Scala expression), the variable
+x1 is free, and so yielder1 is in fact a function taking a drill-down value of
+the first clause as a parameter. [Another way of looking at it is to consider
+yielder1 as being a closure closed on a particular drill-down value of the
+first clause.]
+
+To evaluate the entire expression, we first evaluate the first clause and its
+yielder, and then use these values to compute the value of the whole
+expression.
+
+In our running example then we have:
+
+    val exp1 = List(1, 2, 3)
+
+    val yielder1: Int => List[(Int, String, String)] = { (a1: Int) =>
+      for {
+        x2 <- List(a1.toString)
+        x3 <- List(x2, x2 + x2)
+      } yield((a1, x2, x3))                             
+    }
+
+    yielder1: Int => List[(Int, String, String)] = <function1>
+
+Here is what yielder1 produces when applied to each drill-down value
+of the first clause:
+
+yielder1(1)
+   List[(Int, String, String)] = List((1,1,1), (1,1,11))
+
+yielder1(2)
+   List[(Int, String, String)] = List((2,2,2), (2,2,22))
+
+yielder1(3)
+   List[(Int, String, String)] = List((3,3,3), (3,3,33))
+
+So yielder1 takes a drill-down value of the first clause, and yields results
+for all combinations of that first drill-down value with the remaining values
+defined by the rest of the for-comprehension. Clearly, these results cover the
+result set for all possible combinations of drill-down values of the different
+clauses. So to evaluate the entire for-comprehension, we just need to aggregate
+the results of yielder1(1), yilder1(2), and yilder1(3) in a new list.
+
+This process of evaluting a yielder on each drill-down value of an object and
+aggregating the results is called "binding", and each forable class needs a
+"bind" function to implement this process.
+
+Of course, the same process works to evaluate any for-expression: apply the
+yielder to each drill-down value of the first clause, then aggregate all
+the results of these applications.
+
+It is easy to see that the bind function of a for-comprehensible class,
+Forable[T], must have the following general signature:
+
+def bind[Result](forable: Forable[T], yielder: T => Forable[Result]): Forable[Result]
+
+Where is the Bind Function?
+---------------------------
+
+In order to generate code for a for-comprehension based on a forable class,
+Forable, the Scala compiler expects the bind function to be implemented in a
+method of the Forable class called flatMap.
+
+The first parameter of bind is a Forable[T] value, that is, the forable object
+itself. So the flatMap method of the forable object just needs the yielder as
+a parameter.
+
+class Forable[T] {
+    def flatMap[Result](yielder: T => Forable[Result]): Forable[Result] = ???
+}
+
+Of course, the types you will see in the Scala library are more general than
+this, to allow for different clauses of a for-comprehension to produce
+compatible but not necessarily kind-identical types. That is a level of
+complexity beyond the scope of this note.
+
+The Base of the Recursion
+-------------------------
+
+At the base level of for-comprehensions, we just have a single clause, and for
+each drill-down value of that clause, we need to yield a value of the yield
+expression (whose type is designated as Result). But since the type of a
+Forable for-comprehension is always Forable[Result], the results we obtain must
+be made available as the drill-down values of a resulting Forable[Result]
+object. The idea of applying a function to each member of a collection and
+collecting the results in a collection of the same generic class is, of course,
+known as a map function. So Scala requires that a forable class also have a map
+function to evaluate single-clause for-comprehensions.
+
+    map[Result](result: T => Result): Forable[Result]
+
+As far as the Scala compiler is concerned, if there are map and flatMap methods
+of the right signatures for a given generic type, it knows how to generate code
+for a for-comprehension based on that generic type [in our simplified model].
+Note. If we don't use "if" clauses or pattern matching in the
+for-comprehensions for Forable, we do not need to provide withFilter or filter
+functions).
+
+To summarize, a forable class must provide the following functions:
+
+  class Forable[T] {
+      def map[Result](f: T => Result): Forable[Result]
+      def flatMap[Result](yielder: T => Forable[Result]): Forable[Result]
+  }
+
+Example Evaluation
+------------------
+
+val result = for {
+    x1 <- List(1, 2)
+    x2 <- List(x1 + 100, 200)
+} yield((x1, x2))                             
+
+becomes:
+
+List(1, 2) flatMap { (a1: Int) =>
+    for { x2 <- List(a1 + 100, 200) } yield((a1, x2))                             
+}
+
+which becomes:
+
+List(1, 2) flatMap { (a1: Int) => 
+    List(a1 + 100, 200) map { (a2: Int) => (a1, a2) }
+}
+
+which reduces to:
+
+List(1, 2) flatMap { (a1: Int) => 
+    List((a1, a1 + 100), (a1, 200))
+}
+
+The yielder of this flatMap is:
+
+(a1: Int) => List((a1, a1 + 100), (a1, 200))
+
+Applying this yielder to each drill-down value of the list List(1, 2) in turn
+yields:
+
+List((1, 1 + 100), (1, 200))
+List((2, 2 + 100), (2, 200))
+
+and aggregating these results gives:
+
+List((1,101), (1,200), (2,102), (2,200))
+
+Wrap-Up: Design of a For-Comprehensible Class
+---------------------------------------------
+
+When creating a new for-comprehensible class, consider the following steps.
+Suppose the class is called Forable[T].
+
+1. Describe in words what a for-comprehension based on Forable is supposed to
+do. A for-comprehension has the following general expected properties.
+
+Each clause in the for-comprehension must define a forable object of type
+Forable[Ti]. And Forable[T] must have a defined set of drill-down values of
+type T.
+
+Examples of dril-down sets of values: List(1, 2, 3) has 1, 2, and 3, 
+Map((1 -> 100), (2 -> 200)) has (1, 100) and (2, 200).
+
+The drill-down values of a Forable object should be immediately obvious if our
+Forable for-comprehensions are also going to be comprehensible to readers.
+But they may not be as obvious as those of collections. The important thing to
+keep in mind is that the drill-down values of Forable[T] must have type T,
+because the map and flatMap functions expect that.
+
+2. Initially keep it simple.
+
+For simplicity in fixing ideas when we are experimenting with
+for-comprehensions of a new forable class, it is generally sufficient to consider
+2-level for-comprehensions that yield pairs of values, one from each level.
+Two-level pair-yielding for-comprehensions exercise both the map and the
+flatMap functions, and they yield a general value that depends on all the
+variables in the for-comprehension.
+
+    class Forable[T] = ???
+
+    val forable1: Forable[T1] = ???
+    val forable2: Forable[T2] = ???
+
+    for {
+        x1 <- forable1
+        x2 <- forable2
+    } yield(x1, x2)
+
+The entire for-comprehension must evaluate to a forable object of type
+Forable[Result]. Our 2-level pair-yielding sample, then, must evaluate to an
+object of type Forable[(T1, T2)], which has drill-down values of type (T1, T2)
+for every combination of the drill-down values of forable1 and forable2.
+
+3. Form an intuitive understanding of what the map and flatMap methods 
+of Forable[T] should do. 
+
+Map should conform to the intuitive idea of transforming each drill-down
+T-value of a Forable[T] object to a result value of type Result, and creating a
+Forable[Result] object whose drill-down values are the results.
+
+FlatMap should conform to the intuitive idea that it applies its result yielder
+(a parameter of type T => Forable[Result]) to the drill-down value of its
+Forable[T] object, and then aggregates the yielded results to form a
+new Forable[Result] object. 
+
+4. Implement the map and flatMap functions and check your work.
+
+Check your work by seeing if a two-level for-comprehension does what
+is expected by initially just working directly with the map and the flatMap
+functions. The simplest case is where we have two independent clauses,
+and that case boils down to something like this:
+
+val forable1: Forable[T1] = ???
+val forable2: Forable[T2] = ???
+
+forable1 flatMap { (x1: T1) => forable2 map { (x2: T2) => (x1, x2) } }
+
+This expression returns a Forable[(T1, T2)], and the object returned must have
+drill-down values for each combination of drill-down values of the two forable
+objects. It is easier to work with and troubleshoot this explicit
+representation than to use a for-comprehension in initial testing.
+
+Once we get that working, we can try for-comprehensions, and more complicated
+examples.
+
+Note incidentally that the yielder here is:
+
+     val yielder: T1 => Forable[(T1, T2)] = 
+        (a1: T1) => for { x2 <- forable2} yield((a1, x2))
+     val yielder = (a1: T1) => forable2 map { x2 => (a1, x2) }
+
+In other words, the yielder is a closure that creates tuples in which the
+earlier components are fixed and the later components are enumerated.
+
+Example of a New For-Comprehensible Class
+-----------------------------------------
+
+To illustrate, let's creates a simple forable class that just wraps a
+single drill-down value.
+
+case class Wrapper[T](value: T)
+
+What should the following evaluate to:
+
+    for {
+        x1 <- Wrapper(6)
+        x2 <- Wrapper("Mary")
+    } yield((x1, x2))
+
+We know that the result should be a Wrapper object of the type parameter of the yield
+expressionr. So the expression should evaluate to a value of type Wrapper[(Int, String)].
+We also know that this wrapper should have all combinations of the drill-down values
+two clauses, Wrapper(6) and Wrapper("Mary"). So clearly, it must evaluate to:
+expression should evaluate to:
+
+    Wrapper((6, "Mary")).
+
+To be for-comprehensible, the Wrapper class needs map and flatMap functions.
+
+The map function should transform the embedded value (the one and only
+drill-down value of the wrapper) according to a provided mapping. And the
+flatMap function should apply a given yielder function to the one and only
+drill-down value of the Wrapper object and aggregate the results. Of course,
+since we only have one value, no aggregation is necessary.
+
+The result is the following forable class.
+
+case class Wrapper[T](value: T) {
+    def map[R](f: T => R): Wrapper[R] = Wrapper(f(value))
+    def flatMap[R](yielder: T => Wrapper[R]): Wrapper[R] = yielder(value)  
+}
+
+Checking the explicit use of the map and flatMap function, shows that 
+the expected result is evaluated:
+
+val forable1 = Wrapper(6)
+val forable2 = Wrapper("John")
+
+forable1 flatMap { x1 => forable2 map { x2 => (x1, x2) } }
+ 
+ res1: Wrapper[(Int, String)] = Wrapper((6,John))
+
+Similarly for the implicit use of the map and flatMap functions
+through the use of a for-comprehension.
+
+    for {
+        x1 <- Wrapper(6)
+        x2 <- Wrapper("Mary")
+    } yield((x1, x2))
+
+ res2: Wrapper[(Int, String)] = Wrapper((6,Mary))
+
+Generators
+----------
+
+The fact that collections are for-comprehensible means that we can create a
+system of collections in which we have some collections of primitive types,
+and then we use for-comprehensions to generate collections of more complex
+types by using existing collections. All we have to do is to call the
+constructor of the more complex object in the yield expression of our
+for-comprehension.
+
+For example:
+
+case class Complex(real: Double, imaginary: Double)
+
+val reals: List[Double] = ???
+val imaginaries: List[Double] = ???
+
+val complexes1 = for {
+  real <- reals
+  imaginary <- imaginaries
+} yield(Complex(real, imaginary)
+
+We can then use this system of collections as sample values in tests,
+simulations, and so on.
+
+The problem is that the lists have to exist before data from them can be used.
+
+A different approach is to use "implied" lists (or more precisely implied
+streams) whose values are generated on the fly as needed.
+
+But it would be nice if we could make these implied streams 
+for-comprehensible objects too, so that their creation can use the
+familiar for-comprehension syntax. Implied streams are called generators, and
+so to make them for-comprehensible, we need a generic class, say Generator[T],
+with map and flatMap methods of the requisite signatures. This gives us the
+following structure for generators:
+
+    trait Generator[T] {
+       def T: generate
+       def map(f: T => R): Generator[R]
+       def flatMap(yielder: T => Generator[R]): Generator[R)
+    }
+
+What should be the intuitive interpretation of a Generator-based
+for-comprehension, such as:
+
+    val generator1: Generator[T1] = ???
+    val generator2: Generator[T2] = ???
+
+    for {
+        x1 <- generator1
+        x2 <- generator2
+    }
+    yield((x1, x2))
+
+Note that the result is again a generator, and its type would be 
+Generator[(T1, T2)].
+
+Basically the idea is to create a generator whose generate function calls the
+first generator and gets a value, and then calls the second generator and gets
+a value, and then pairs these values together. That is, calling generate on
+this higher-level generator should give us the value:
+
+    (generator1.generate, generator2.generate)
+
+Before we go on to implement the map and flatMap functions for Generator,
+let's compare this type of a for-comprehensible class with the examples
+we have seen earlier.
+
+There is a conceptual difference between this generation mechanism, and the
+earlier generation mechanism based on lists. In list-based generation, we
+generate all combinations of drill-down values for each list. In
+generator-based generation, we don't get all combinations of values generated
+by the two streams. We only get the combinations that would result from zipping
+the two streams. The generators are advanced in lock step.
+
+There is also a difference between the generator model and our simple
+for-comprehensible wrapper discussed earlier. For a simple wrapper, the
+**embedded value IS the drill-down value**. For the generator, the embedded
+value is its generate function. But, and this is the crucial point of
+departure, the **embedded value, i.e., the generate function IS NOT the
+drill-down value** of the generator. The drill-down value of a generator is the
+result of applying its embedded value, that is, its generate function.
+
+Now consider the intuitive interpretations of the map and the flatMap 
+functions for a system of generators.
+
+First the map function. Intuitively, if we map the function "double" on an
+integer generator, we would want to get an integer generator that doubles the
+values produced by the original generator, i.e., double(self.generator), where
+self represents the original generator. 
+
+Next the flatMap function. As we have seen above, the the general
+interpretation of the flatMap function is that it should call the yielder
+function [given to it as a parameter] on each drill-down value of its object
+and then aggregate the results. Since there is just one drill-down value [at a time]
+associated with each generator, namely, the result of applying its generate
+function, the generate function produced by flatMap should just call the
+yielder on that one value.
+
+So the intuitive meanings of the map and flatMap functions are real simple
+to implement.
+
+    trait Generator[T] {
+       self =>
+       def generate: T
+       def map[R](f: T => R): Generator[R] = new Generator[R] {
+         def generate: R = f(self.generate)
+       }
+       def flatMap[R](yielder: T => Generator[R]): Generator[R] = new Generator[R] {
+         def generate: R = {
+           yielder(self.generate).generate
+         }
+       }
+    }
+
+It remains only to check that the right thing happens first when map 
+and flatMap are used explicitly, and then when they are implicitly
+picked up by the compiler for a for-comprehension.
+
+    val generator1: Generator[Int] = new Generator[Int] {
+        var state: Int = 0
+        def generate = {state = state + 1; 5 * state}
+    }
+
+    val generator2: Generator[String] = new Generator[String] {
+        var state = "a"
+        def generate = { state = state + "a"; state}
+    }
+
+    val pairGenerator1 = generator1 flatMap { 
+        (i: Int) => generator2 map { (s: String) => (i, s) } 
+    }
+
+    pairGenerator1.generate
+    pairGenerator1.generate
+    pairGenerator1.generate
+
+    val pairGenerator2 = for {
+        x1 <- generator1
+        x2 <- generator2
+    }
+    yield((x1, x2))
+
+    pairGenerator2.generate
+    pairGenerator2.generate
+    pairGenerator2.generate
+
+Glossary
+--------
+
+For each term defined below, the following for-comprehension using the 
+simple forable Wrapper is used to illustrate its meaning.
+
+    for {
+        x1 <- Wrapper(6)
+        x2 <- Wrapper("Mary")
+    } yield((x1, x2))
+
+clause - an individual sub-expression associated with a variable of 
+  a for-comprehension. Example: Wrapper(6).
+
+for-comprehensible class (forable class) - a generic class that can appear 
+  as the generic type of the clauses of a for-comprehension. The clauses 
+  have the same generic type with possibly different type parameters.
+  Example: Wrapper[T]. Clauses have types Wrapper[Int], Wrapper[String], etc.
+
+drill-down values (drill-down set) - the set of values of a parameterized
+  for-comprehensibe type that the running variable of a for-comprehension 
+  clause is supposed to run over. Example: for Wrapper(6) the set {6};
+  for List(1, 2, 3), the set {1, 2, 3}.
+
+yield expression - the expression apperaing in the yield statement of a
+  for comprehension. Example: (x1, x2).
+
+yielder function - A function that takes as a paremeter a drill-down value, 
+  a1, of a for-comprehension clause, and returns a for-comprehensible 
+  object whose drill-down values are the yielded results of the 
+  for-comprehension for the combination of a1 and all combinations of 
+  drill-down values of the remaining (lower-level) clauses. Example: 
+  
+  (a1: Int) => for { x2 <- Wrapper("Mary") } yield(a1, x2)
+  (a1: Int) => Wrapper("Mary") map { name => (a1, name) }
+

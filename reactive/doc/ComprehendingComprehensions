@@ -20,9 +20,16 @@ number of **clauses** and a **yield expression**:
 I will assume that all the individual clauses have the same generic
 parameterized type, for example, List. The actual types of these
 sub-expressions might differ in the type parameter of their parameterized type.
-For example, a for-comprehension based on the List type may have
-clauses of type List[Int], List[String], etc. I'll call such a generic type
-a **for-comprehensible** type, or for brevity, a **forable** type.
+For example, a for-comprehension based on the List type may have clauses of
+type List[Int], List[String], etc. I'll call such a generic type a
+**for-comprehensible** type, or for brevity, a **forable** type.
+
+Note. A monad is a for-comprehensible class that has some additional
+mathematical properties. In its loose interpretation in functional programming,
+a monad is just a for-comprehensible class: it may or may not have the
+additional monadic properties. But since thea additional properties are not
+needed in for-comprehensions, I am using a different term, for-comprehensible,
+for classes that may participate in for-comprehensions.
 
 Here is an example:
 
@@ -51,7 +58,7 @@ intentionally leaving this notion of "associated" values vague, to allow for
 more general uses of for-comprehensions. I will call the set of values
 associated with a forable object in the context of for-comprehensions, the
 object's **drill-down values** or **drill-down set**. So the drill-down 
-values of Vector(1, 2, 3) are {1, 2, 3}.
+values of of the forable object Vector(1, 2, 3) are {1, 2, 3}.
 
 The Meaning of a For-Comprehension
 ----------------------------------
@@ -61,10 +68,10 @@ combination of drill-down values of its clauses. This intuitive notion is made
 precise by the evaluation model of for-comprehensions.
 
 Since we have an arbitrary number of levels in our for-comprehensions, it makes
-sense to define the evaluation model in a top-down recursive manner, a la
-call-by-value semantics. So we consider a for-comprehension as a function of
-two arguments: the value of its first clause, exp1, and the value of the whole
-of the rest of the for-comprehension, which I will refer to as the **yielder**.
+sense to define the evaluation model in a top-down recursive manner. So we
+consider a for-comprehension as a function of two arguments: the value of its
+first clause, exp1, and the value of the whole of the rest of its terms,
+which I will refer to as the **yielder**.
 
 In our example, 
 
@@ -76,10 +83,9 @@ In our example,
     } yield((x1, x2, x3))
 
 In yielder1 above (which is not [yet] a valid Scala expression), the variable
-x1 is free, and so yielder1 is in fact a function taking a drill-down value of
-the first clause as a parameter. [Another way of looking at it is to consider
-yielder1 as being a closure closed on a particular drill-down value of the
-first clause.]
+x1 is free. So yielder1 may be thought of as a function taking a drill-down
+value of the first clause as a parameter. [Equivalently, it may be thought of
+as a closure closed on a particular drill-down value of the first clause.]
 
 To evaluate the entire expression, we first evaluate the first clause and its
 yielder, and then use these values to compute the value of the whole
@@ -115,11 +121,11 @@ for all combinations of that first drill-down value with the remaining values
 defined by the rest of the for-comprehension. Clearly, these results cover the
 result set for all possible combinations of drill-down values of the different
 clauses. So to evaluate the entire for-comprehension, we just need to aggregate
-the results of yielder1(1), yilder1(2), and yilder1(3) in a new list.
+the results of yielder1(1), yielder1(2), and yielder1(3) in a new list.
 
 This process of evaluting a yielder on each drill-down value of an object and
-aggregating the results is called "binding", and each forable class needs a
-"bind" function to implement this process.
+aggregating the results is called "binding", and each for-comprehensible class
+needs a "bind" function to implement this process. 
 
 Of course, the same process works to evaluate any for-expression: apply the
 yielder to each drill-down value of the first clause, then aggregate all
@@ -160,10 +166,10 @@ Forable for-comprehension is always Forable[Result], the results we obtain must
 be made available as the drill-down values of a resulting Forable[Result]
 object. The idea of applying a function to each member of a collection and
 collecting the results in a collection of the same generic class is, of course,
-known as a map function. So Scala requires that a forable class also have a map
+known as a "map" function. So Scala requires that a forable class also have a map
 function to evaluate single-clause for-comprehensions.
 
-    map[Result](result: T => Result): Forable[Result]
+    map[Result](resultProducer: T => Result): Forable[Result]
 
 As far as the Scala compiler is concerned, if there are map and flatMap methods
 of the right signatures for a given generic type, it knows how to generate code
@@ -232,7 +238,7 @@ Each clause in the for-comprehension must define a forable object of type
 Forable[Ti]. And Forable[T] must have a defined set of drill-down values of
 type T.
 
-Examples of dril-down sets of values: List(1, 2, 3) has 1, 2, and 3, 
+Examples of drill-down sets of values: List(1, 2, 3) has 1, 2, and 3, 
 Map((1 -> 100), (2 -> 200)) has (1, 100) and (2, 200).
 
 The drill-down values of a Forable object should be immediately obvious if our
@@ -244,11 +250,11 @@ because the map and flatMap functions expect that.
 2. Initially keep it simple.
 
 For simplicity in fixing ideas when we are experimenting with
-for-comprehensions of a new forable class, it is generally sufficient to consider
-2-level for-comprehensions that yield pairs of values, one from each level.
-Two-level pair-yielding for-comprehensions exercise both the map and the
-flatMap functions, and they yield a general value that depends on all the
-variables in the for-comprehension.
+for-comprehensions of a new forable class, consider just 2-level
+for-comprehensions that yield pairs of values, one from each level.  Two-level
+pair-yielding for-comprehensions exercise both the map and the flatMap
+functions, and they yield a general value that depends on all the variables in
+the for-comprehension.
 
     class Forable[T] = ???
 
@@ -272,10 +278,10 @@ Map should conform to the intuitive idea of transforming each drill-down
 T-value of a Forable[T] object to a result value of type Result, and creating a
 Forable[Result] object whose drill-down values are the results.
 
-FlatMap should conform to the intuitive idea that it applies its result yielder
-(a parameter of type T => Forable[Result]) to the drill-down value of its
-Forable[T] object, and then aggregates the yielded results to form a
-new Forable[Result] object. 
+FlatMap should conform to the intuitive idea that it applies its yielder
+function (a parameter of type T => Forable[Result]) to the drill-down value of
+its Forable[T] object, and then aggregates the yielded results to form a new
+Forable[Result] object. 
 
 4. Implement the map and flatMap functions and check your work.
 
@@ -325,7 +331,6 @@ We know that the result should be a Wrapper object of the type parameter of the 
 expressionr. So the expression should evaluate to a value of type Wrapper[(Int, String)].
 We also know that this wrapper should have all combinations of the drill-down values
 two clauses, Wrapper(6) and Wrapper("Mary"). So clearly, it must evaluate to:
-expression should evaluate to:
 
     Wrapper((6, "Mary")).
 

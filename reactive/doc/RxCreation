@@ -1,0 +1,188 @@
+
+Creating Rx Observables - An Overview
+-------------------------------------
+
+Azad Bolour
+
+Introduction
+------------
+
+This note continues the earlier introductory note on the Rx observable pattern
+by going into more details on how observables are created.  See the references
+in the earlier introductory note for source materials for this note. In
+particular, this note was motivated by and is largely based on what I learned
+from Eric Meijer's Rx lectures in the Coursera Reactive Programming course.
+
+Various Observable Factory Methods
+----------------------------------
+
+There is an observable apply method for a vararg of observables just like
+for collections. This is the simplest way to create observables for testing.
+
+    def apply[T](items: T*): Observable[T]
+
+Here are a couple of other useful factory methods:
+
+    def apply(range: Range): Observable[Int]
+    apply[T](exception: Throwable): Observable[T]
+
+You generally create observables in three ways:
+
+- By using one of the above factory methods.
+
+- By using a factory method that takes a subscribe function as its parameter.
+    
+  object Observable {
+    def apply[T](subscribe: Observer[T] => Subscription): Observable[T]
+  }
+
+  The subscribe function has to arrange that a given observer's callback
+  functions be called at appropriate times to produce the required sequence
+  conforming to: OnNext* (OnCompleted | OnError)?. 
+
+- By combining or filtering existing observerable using various observer
+  combinators, like merge, and filters.
+
+For some examples, see Eric Meijer's Coursear Reactive Programming sample code:
+
+    https://github.com/headinthebox/CourseraCodeSamplesReactiveProgramming
+
+Creating an Observer from Scratch
+---------------------------------
+
+Creating an observer from scratch is a little more complicated.
+
+    val observer = Observer(new rx.Observer[Int]() {
+      def onCompleted = {}
+      def onError(th: Throwable) = {}
+      def onNext(x: Int) = {}
+    })
+
+It is easier to just provide the callback functions to the subscribe
+method:
+
+    observable.subscribe(
+      onNext = { x: T => },
+      onError = { th: Throwable => },
+      onCompleted = { () => })
+
+Subscriptions
+-------------
+
+A client of an observable may wish to end receiving notifications from the
+observable. Traditionally, this type of thing is implemented by a method
+like removeListener, or unregister on the observable object. But Rx
+provides a separate object, called a subscription, to use to unsubscribe
+from an observable. Different subscribers get their own subscription
+objects backed by the given observable.
+
+Modeling the unsubscribe concept by an object rather than by a method allows
+subscriptions to be easily combined in useful ways, for example, by aggregating
+a number of subscriptions into another subscription, so that they can easily be
+unsubscribed together by unsubscribing from the aggregate subscription.
+
+Implementation of Observerables
+-------------------------------
+
+A "subject" in Rx is an implementation of an observable that also implements
+the observer interface. The subject is basically a channel: as an observer
+it gets events, and as an observable it emits events to its subscribers.
+The events received by a subject may be manipulated in various ways, e.g.,
+mapping, filtering, etc. before being pushed to subscribing observers.
+So a loose way of thinking about subjects is as a filtering channel.
+
+    trait Subject[-T, +R] extends Observable[R] with Observer[T]
+
+The Rx notion of a subject is the direct counterpart of the notion of a promise
+for implementing futures. A promise gets a completion and channels it to its
+future. A subject gets next, error, and complete events and channels it
+(possibly after some manipulation) to its subscribers.
+
+Here is an example from Eric Meijer's Coursera lectures (see github reference
+above) that uses a subject to create an observable backed by a future.  
+
+object ToObservable {
+   def apply[T](future: Future[T]): Observable[T] = {
+     val subject = AsyncSubject[T]()
+     future.onSuccess {
+       case s => {
+        subject.onNext(s);
+        subject.onCompleted()
+        }
+     }
+     future.onFailure {
+       case e => {
+        subject.onError(e)
+       }
+     }
+     subject
+   }
+}
+
+Certain useful subjects are provided by the Rx library, among which is the
+AsyncSubject used in the example. They generally differ in their strategies for
+remembering history for future subscribers. The AsyncSubject remembers its
+final received value, and provides that value and then onComplete to its
+subscribers. The PublishSubject just transmits values as it receives them,
+remembering nothing. See the documentation for the other provided subjects.
+
+Hot and Cold Observables
+------------------------
+
+Let's conclude by considering one important consideration in the creation 
+of observables - the distinction between so-called hot and cold observables.
+
+For motivation, I'll begin with the Iterable/Iterator distinction.
+
+The iterator is the embodiment of the pull version of the notion of a sequence.
+The "next" method of iterator returns a value and advances the the sequence's
+"cursor" forward.
+
+trait Iterator[T] {
+    hasNext(): Boolean
+    next(): T
+    // usual collection-sequence methods
+}
+
+When multiple clients each need their own independent cursors on a sequence,
+the sequence itself is modeled by the trait Iterable:
+
+trait Iterable[T] {
+    def iterator(): Iterator[T]
+    // usual collection-sequence methods
+}
+
+and the iterator function returns iterators with independent cursors over the
+underlying sequence. Iterable itself has the normal sequence methods, map,
+take, etc., but not the cursor methods.
+
+The observable/observer relationship is analogous to the iterable/iterator
+relationship in the sense that multiple observers may be observing an
+observable.
+
+But the analogy is not exact, because we have a push model of obervables
+versus a pull model of iterators. In the pull model, it makes sense for each
+puller to have its own cursor over the sequence being observed, and to pull on
+its own accord. In the push model, it is not the pullers who are controlling
+the process but the pusher. And when the next value arrives, the pusher just
+pushes it to all observers. In other words, in the push model, there is just
+one cursor controlled by the observable.
+
+If we wish to have independent cursors over the same underlying sequence in the
+push model, then we need to create different observables over that underlying
+sequence. The "sameness" of the underlying data would be captured in the
+same factory method for creating observables taking the same parameters. 
+
+For example, we may have a factory method to produce the lines of a file as an
+observable sequence. Different calls to this factory method would create
+different observables producing different copies of the set of lines in the
+file. Then each of these observable may be subscribed to by an observer (or
+multiple observers, for that matter). Observables created by this pattern are
+called "passive" or "cold" observables. Often in this case, obsevers get all
+the values of the sequence from its inception.
+
+When a single observable is used to model an underlying phenomenon, the
+observable is called "active" or "hot". In this case, generally, a subscription
+to the observable produces the sequence of values that become available from
+the point of subcription on.
+

@@ -1,0 +1,255 @@
+
+Introduction to Scala Rx
+------------------------
+
+Azad Bolour
+
+Introduction
+------------
+
+The Rx observable pattern generalizes the well-known GoF observer pattern by
+changing the focus from individual notifications, to sequences of notifications,
+and by including explicit mechanisms for asynchronous notifications. Moreover, in
+Rx, these generalizations are framed in functional programming terms.
+
+I will begin by reviewing the GoF observable pattern, follow by generalizing
+to sequences, and end by adding asynchronicity to the model. 
+
+Source materials for this note appear in the references section below. Much of
+what I have learned about Rx comes from Erik Meijer's lectures on the subject
+in the Coursera Reactive Programming course.
+
+The Observer Pattern
+--------------------
+
+The observer pattern has three basic concepts: the "observable" produces
+notifications, the "observer" receives notification, and the "observed"
+embodies notification data.
+
+A prevalent application of the observer pattern is in notification 
+of UI events to GUI application code. In this case, the observable is a
+UI component, the observer is application code interested in UI events
+on that component, and the observed is the event data.
+
+Communication via notification is also known as the "push" model. And the act
+of observation is embodied in a callback function: 
+
+    callback: Observed => Unit
+
+The push model may be contrasted with a pull model in which the observer
+requests values from the observable via a next function:
+
+    next: Unit => Observed
+
+Note that the corresponding push and pull functions in the two models
+have reversed signatures.
+
+By using Try[Observed] rather than just Observed in the above signatures
+we can encapsulate both success and possible failure in the computation of
+the observed value in the above models:
+
+    callback: Try[Observed] => Unit
+    next: Unit => Try[Observed]
+
+Recall that in Scala Try[Observed] is a discriminated union of two cases:
+
+    Success[Observed] 
+    Failure[Throwable]
+
+The Observer Pattern Viewed in Terms of Observed Sequences
+----------------------------------------------------------
+
+Let us now view an abservable as the producer of a sequence notification
+values. 
+
+Our push/pull model of the last section that focused on single values still
+holds, but they lack a direct representation of the fact that a sequence may
+end. That notion is generally modeled in the pull model by a hasNext function:
+
+    hasNext: Unit => Boolean
+
+So now we need two functions to represent the observer pattern. And as we saw
+earlier, the push function corresponding to a given pull function reverses the
+signature of that pull function. Adding the new push function corresponding to
+hasNext to our earlier push model, we then get the following push model for
+observable sequences:
+
+    onNext: Try[Observable] => Unit
+    onHasNext: Boolean => Unit
+    
+Now the onHasNext function would be called to notify both when a next value is
+available (true), and when no more values are available (false). But the
+existence of a new value is already embodied in the onNext function.  So the
+"true" case of onHasNext is not really needed. What remains is just the false
+case, which then needs no parameter. So onHasNext becomes onNoNext: Unit =>
+Unit, which in Rx is known as onCompleted.
+
+To recap, push for observable sequences may be modeled by the following
+callback functions registered by observers on observables:
+
+    onNext: Try[Observable] => Unit
+    onCompleted: Unit => Unit 
+
+Now it turns out that the Rx observable model does not use Try, probably
+because it needs to be polyglot, and other languages do not use the Try model.
+Instead, the Rx observable API splits the Try[Observable] into its two cases,
+success, and failure, and provides a callback method for each case, called
+respectively onNext, and onError. The observable then needs the three 
+functions onNext, onError, and onCompleted from each observer to be notified.
+
+In Rx, the observer registration function is called "subscribe". Subscribe is
+a method of the Observable trait that has several variants. In one variant, 
+the three callback functions as just passed in as parameters:
+
+    def subscribe(
+        onNext: (T) => Unit, 
+        onError: (Throwable) => Unit, 
+        onCompleted: () => Unit): Subscription
+
+The next step is to package the three callback functions into a single observer
+object, so that we can pass objects rather than individual callbacks to the
+subscribe function. 
+
+    trait Observer[-T] {
+        def onNext(value: T) => Unit
+        def onCompleted() => Unit
+        onError(ex: Throwable) => Unit
+    }
+
+And a variant of the subscribe function takes an observer as a parameter:
+
+    def subscribe(observer: Observer[T]): Subscription
+
+The returned subscriptions may be used to unsubscribe this particular observer
+from the observable.
+
+The Observable/Observer Contract
+--------------------------------
+
+The contract for observables is that each observer subscribed to an observable
+needs to see a sequence of callbacks described by the following regular expression:
+
+    OnNext* (OnCompleted | OnError)?
+
+Note that if an error occurs, even though the sequence ends, only OnError is
+called. Note also the decision to fail fast on an error.
+
+The contract als stipulates that the calls come in strict time sequence: the
+observable waits until one call in this sequence returns before it initiates
+the next call.
+
+Asynchronous Push for Sequences
+-------------------------------
+
+So far we in our treatment we have ignored asynchronicity. The next step is to
+introduce potential asynchronicity explicitly into the picture. But first some
+background.
+
+In the classic view of the application of the observer pattern, the observable
+has some internal state, and the observers are interested in certain changes of
+that internal state. 
+
+The entire process of changing state and notifying the registered observers may
+occur on the main thread of the application. A client of the observable running
+on the main thread calls a mutator of the observable, the observable changes
+its state and notifies all registered observers synchronously still on the
+main thread, and when all that is completed, control returns to the client, who
+continues on in the main thread. 
+
+On the other hand, the observable may also be mutated asynchronously, for
+example, a UI component may be changed by the event loop of the UI
+running on its own thread. Sometimes this type of thing happens in library
+code not under the control of the application. 
+
+But it is also useful for the application itself to arrange for the sequence of
+values produced by an observable to arrive asynchronously to its main thread.
+To motivate that, simply generalize the notification model from one based on
+state changes to one based on an arbitrary process that produces successive
+values. 
+
+Whenever IO is involved in the process of producing the sequence of values of
+an observable, it is useful to consider producing those values asynchronously
+to the main thread of the application so the application itself can remain as
+raective as possible.
+
+The subscribe methods of trait Observable generally include an optional
+parameter: scheduler. The scheduler tells the observable what thread to use to
+schedule the callback functions of the subscribing observer. The object
+Schedulers include various factory methods for creating schedulers, including,
+currentThread, newThread, threadPoolForComputation, and threadPoolForIO.
+
+Note. Generally, by default, observer callbacks run on the current thread. Of
+course, the observable is in control, and its default behavior may differ.  For
+example, an observable created by the factory method Observable.interval (which
+produces the natural numbers at successive intervals of time) always runs its
+subscriber callbacks on a differnt thread, even if it is asked to run them on
+the current thread.
+
+Observables act very much like other Scala collections, and in particular, they
+are for-comprehensible monads: the Rx library provides the required map and
+flatMap functions. The semantics are basically those of sequences. But when
+individual subsriber subscribe to observables asynchronously, the semantics are
+augmented to take care of asynchronous arrivals at a later time just like
+futures.
+
+Variance of the Observable and Observer Classes
+-----------------------------------------------
+
+To be consistent with the design of general sequences, the trait Observable is
+covariant. Here is the gist of the additional functions introduced in addition
+to general sequence functions in the Observable trait as it concerns variance:
+
+trait Observable[+T] {
+    subscribe(observer: Observer[T]) : Subscription
+    subscribe(onNext: T => Unit)
+}
+
+To see that it is OK for Observable to remain covariant even with the 
+addition of these functions, consider the following scenario.
+
+    val childObservable: Observable[Child] = ???
+    val parentObservable: Observable[Parent] = sub // OK by covariance.
+    val parentObserver: Observer[Parent] = ???
+    parentObservable.subscribe(parentObserver)  // OK. Matching type parameters.
+
+Will this work? Note that the parentObservable will actually be producing
+Child values (since it refers to a Child observable). Will these child
+values be accepted by the subscribed observer? The subscribed observer
+is Observer[Parent] and so its onNext function has the signature: 
+
+    onNext: Parent => Unit
+
+The onNext function can deal with any Parent value, and since any Child is
+substitutable for a parent value, the values produced by parentObservable will
+be accepted by the observer's onNext, and the subscription is sound.
+
+Similar arguments show that Observer cannot be covariant but can be
+contravariant.
+
+This concludes the basic description of the Rx Observable model.
+
+A follow-up note will concentrate on the creation of observable.
+
+References
+----------
+
+http://rxscala.github.io/scaladoc/index.html
+
+https://github.com/headinthebox/CourseraCodeSamplesReactiveProgramming
+
+For the original C# implementation of Rx see:
+
+http://www.introtorx.com/Content/v1.0.10621.0/00_Foreword.html
+
+User guide for JVM implementation:
+
+https://github.com/Netflix/RxJava/wiki/Observable
+
+Ben Christensen presentation slides 
+
+https://speakerdeck.com/benjchristensen/rxjava-goto-aarhus-2013
+
+Ben Christensen infoq talk:
+
+http://www.infoq.com/presentations/netflix-functional-rx?utm_source=infoq&utm_medium=slideshare&utm_campaign=slidesharelondon
+

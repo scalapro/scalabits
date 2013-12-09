@@ -62,7 +62,7 @@ The Observer Pattern Viewed in Terms of Observed Sequences
 Let us now view an abservable as the producer of a sequence notification
 values. 
 
-Our push/pull model of the last section that focused on single values still
+Our push/pull models of the last section that focused on single values still
 holds, but they lack a direct representation of the fact that a sequence may
 end. That notion is generally modeled in the pull model by a hasNext function:
 

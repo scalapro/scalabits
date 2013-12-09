@@ -16,8 +16,11 @@ from Eric Meijer's Rx lectures in the Coursera Reactive Programming course.
 Various Observable Factory Methods
 ----------------------------------
 
-There is an observable apply method for a vararg of observables just like
-for collections. This is the simplest way to create observables for testing.
+As in the case of general collections, the trait Observable provides an apply
+method that takes a list of values passed in as vararg parameters for creating
+observables. The supplied values, are, of course, values of the observed type
+to be emitted by the new observable. This is the simplest way to create
+observables for testing.
 
     def apply[T](items: T*): Observable[T]
 
@@ -43,7 +46,7 @@ You generally create observables in three ways:
 - By combining or filtering existing observerable using various observer
   combinators, like merge, and filters.
 
-For some examples, see Eric Meijer's Coursear Reactive Programming sample code:
+For some examples, see Eric Meijer's Coursera Reactive Programming sample code:
 
     https://github.com/headinthebox/CourseraCodeSamplesReactiveProgramming
 
@@ -135,7 +138,7 @@ of observables - the distinction between so-called hot and cold observables.
 For motivation, I'll begin with the Iterable/Iterator distinction.
 
 The iterator is the embodiment of the pull version of the notion of a sequence.
-The "next" method of iterator returns a value and advances the the sequence's
+The "next" method of iterator returns a value and advances the sequence's
 "cursor" forward.
 
 trait Iterator[T] {
@@ -176,7 +179,7 @@ same factory method for creating observables taking the same parameters.
 For example, we may have a factory method to produce the lines of a file as an
 observable sequence. Different calls to this factory method would create
 different observables producing different copies of the set of lines in the
-file. Then each of these observable may be subscribed to by an observer (or
+file. Then each of these observables may be subscribed to by an observer (or
 multiple observers, for that matter). Observables created by this pattern are
 called "passive" or "cold" observables. Often in this case, obsevers get all
 the values of the sequence from its inception.

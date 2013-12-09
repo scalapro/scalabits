@@ -99,12 +99,12 @@ functions onNext, onError, and onCompleted from each observer to be notified.
 
 In Rx, the observer registration function is called "subscribe". Subscribe is
 a method of the Observable trait that has several variants. In one variant, 
-the three callback functions as just passed in as parameters:
+the three callback functions are just passed in as parameters:
 
     def subscribe(
         onNext: (T) => Unit, 
         onError: (Throwable) => Unit, 
-        onCompleted: () => Unit): Subscription
+        onCompleted: (() => Unit): Subscription
 
 The next step is to package the three callback functions into a single observer
 object, so that we can pass objects rather than individual callbacks to the
@@ -134,14 +134,14 @@ needs to see a sequence of callbacks described by the following regular expressi
 Note that if an error occurs, even though the sequence ends, only OnError is
 called. Note also the decision to fail fast on an error.
 
-The contract als stipulates that the calls come in strict time sequence: the
+The contract also stipulates that the calls come in strict time sequence: the
 observable waits until one call in this sequence returns before it initiates
 the next call.
 
 Asynchronous Push for Sequences
 -------------------------------
 
-So far we in our treatment we have ignored asynchronicity. The next step is to
+So far in our treatment we have ignored asynchronicity. The next step is to
 introduce potential asynchronicity explicitly into the picture. But first some
 background.
 
@@ -170,25 +170,25 @@ values.
 Whenever IO is involved in the process of producing the sequence of values of
 an observable, it is useful to consider producing those values asynchronously
 to the main thread of the application so the application itself can remain as
-raective as possible.
+reactive as possible.
 
 The subscribe methods of trait Observable generally include an optional
 parameter: scheduler. The scheduler tells the observable what thread to use to
 schedule the callback functions of the subscribing observer. The object
-Schedulers include various factory methods for creating schedulers, including,
+"Schedulers" includes various factory methods for creating schedulers, including,
 currentThread, newThread, threadPoolForComputation, and threadPoolForIO.
 
-Note. Generally, by default, observer callbacks run on the current thread. Of
-course, the observable is in control, and its default behavior may differ.  For
-example, an observable created by the factory method Observable.interval (which
-produces the natural numbers at successive intervals of time) always runs its
-subscriber callbacks on a differnt thread, even if it is asked to run them on
-the current thread.
+Note. Generally, by default, observer callbacks run on the current thread, that
+is, the thread making the subscription call. Of course, the observable is in
+control, and its default behavior may differ. For example, an observable
+created by the factory method Observable.interval (which produces the natural
+numbers at successive intervals of time) always runs its subscriber callbacks
+on a differnt thread, even if it is asked to run them on the current thread.
 
 Observables act very much like other Scala collections, and in particular, they
 are for-comprehensible monads: the Rx library provides the required map and
 flatMap functions. The semantics are basically those of sequences. But when
-individual subsriber subscribe to observables asynchronously, the semantics are
+individual subsribers subscribe to observables asynchronously, the semantics are
 augmented to take care of asynchronous arrivals at a later time just like
 futures.
 

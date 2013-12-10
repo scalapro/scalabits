@@ -184,6 +184,8 @@ control, and its default behavior may differ. For example, an observable
 created by the factory method Observable.interval (which produces the natural
 numbers at successive intervals of time) always runs its subscriber callbacks
 on a differnt thread, even if it is asked to run them on the current thread.
+The Observable method observeOn(scheduler) tells an observer where to schedule
+the callbacks of its observers, which thread, or thread group.
 
 Observables act very much like other Scala collections, and in particular, they
 are for-comprehensible monads: the Rx library provides the required map and

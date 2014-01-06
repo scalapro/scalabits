@@ -113,7 +113,7 @@ subscribe function.
     trait Observer[-T] {
         def onNext(value: T) => Unit
         def onCompleted() => Unit
-        onError(ex: Throwable) => Unit
+        def onError(ex: Throwable) => Unit
     }
 
 And a variant of the subscribe function takes an observer as a parameter:

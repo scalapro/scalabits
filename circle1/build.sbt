@@ -25,6 +25,8 @@ libraryDependencies ++= Seq(
 
 EclipseKeys.withSource := true
 
+EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
+
 resolvers += "Maven Central" at "http://repo1.maven.org/maven2"
 
 resolvers += "Sonatype OSS Repo" at "http://oss.sonatype.org/content/repositories/snapshots"
